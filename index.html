@@ -1,0 +1,3913 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EXP Poster Generator</title>
+  <style>
+    :root {
+      --bg: #f8f8f8;
+      --panel: #ffffff;
+      --border: #050505;
+      --text: #050505;
+      --muted: #5c5c5c;
+      --accent: #000000;
+      --accent-contrast: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Space Grotesk", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .logoMark {
+      height: 88px;
+      width: auto;
+    }
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      gap: 1px;
+    }
+    #controls {
+      width: 300px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 18px;
+      overflow-y: auto;
+    }
+    #controls h2 {
+      margin-top: 0;
+      letter-spacing: 0.3em;
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 800;
+    }
+    .control-section {
+      padding: 14px 0 6px;
+      border-top: 1px solid var(--border);
+      margin-top: 14px;
+    }
+    .control-section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    .control-section h3 {
+      margin: 0 0 8px;
+      font-size: 12px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--text);
+      font-weight: 800;
+    }
+    label {
+      display: block;
+      margin: 10px 0 4px;
+      font-weight: 600;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    .valueDisplay {
+      font-size: 12px;
+      color: var(--muted);
+      float: right;
+    }
+    input[type="text"], select, input[type="file"], input[type="color"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 13px;
+      background: transparent;
+      color: var(--text);
+    }
+    input[type="color"] {
+      padding: 0;
+      height: 44px;
+      cursor: pointer;
+    }
+    input[type="range"] {
+      appearance: none;
+      background: transparent;
+      height: 34px;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      background: var(--text);
+      border-radius: 2px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 0;
+      background: var(--panel);
+      border: 2px solid var(--text);
+      margin-top: -6px;
+    }
+    input[type="range"]::-moz-range-track {
+      height: 4px;
+      background: var(--text);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 0;
+      background: var(--panel);
+      border: 2px solid var(--text);
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 14px 0;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .checkbox-row input {
+      accent-color: var(--accent);
+    }
+    .color-inline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .color-inline label {
+      margin: 0;
+    }
+    .color-inline input[type="color"] {
+      width: 40px;
+      height: 32px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+    #letterLayoutOptions {
+      margin-top: 8px;
+    }
+    .posterActions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    button {
+      border: 1px solid transparent;
+      background: var(--accent);
+      color: var(--accent-contrast);
+      padding: 10px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.2s ease;
+    }
+    button.secondary {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text);
+    }
+    button:active { transform: translateY(1px); }
+    #messages {
+      margin: 0 0 12px;
+      font-size: 13px;
+      min-height: 20px;
+    }
+    #messages .msg { margin-bottom: 6px; }
+    #messages .error { color: #c0392b; }
+    #messages .info { color: #2c3e50; }
+
+    #posterContainer {
+      flex: 1;
+      padding: 18px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #posterArea {
+      position: relative;
+      margin: 0 auto 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 30px rgba(15,17,23,0.15);
+      height: 70vh;
+      aspect-ratio: 2 / 3;
+      max-width: 70vw;
+      /* allow elements like shadows to extend outside letter bounding boxes */
+      overflow: visible;
+      transition: box-shadow 0.2s ease;
+    }
+    #posterArea.loading {
+      box-shadow: 0 12px 40px rgba(15,17,23,0.25);
+    }
+    .letter {
+      position: absolute;
+      transform-origin: center center;
+      pointer-events: none;
+      transition: transform 0.2s ease-out;
+      will-change: transform;
+      image-rendering: auto;
+    }
+
+    /* Layer für Hintergrundbilder */
+    .background-images-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+      overflow: hidden;
+    }
+    .background-images-layer--front {
+      z-index: 90;
+    }
+
+    .background-images-layer img {
+      position: absolute;
+      pointer-events: none;
+      /* Render images in normal color/quality; adjustments are via controls */
+      filter: none;
+    }
+
+    @media (max-width: 900px) {
+      .main { flex-direction: column; }
+      #controls { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+      #posterContainer { padding-top: 0; }
+      #posterArea { max-width: 100%; height: 60vh; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNa5lN5nT36f2NvhfVqlhK/SXxPxq8np5xpoE2mR7BncpsbR9f7DmqDveoxu48UUfZo0fo0RKZ77N8BINjr0sA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body>
+  <header>
+    <img src="LOGO/PG_Logo.png" alt="EXP Poster Generator Logo" class="logoMark">
+  </header>
+  <div class="main">
+    <section id="posterContainer">
+      <div class="posterActions">
+        <button id="generateBtn">Poster generieren</button>
+        <button id="shuffleBtn" class="secondary">Neu mischen</button>
+        <button id="exportBtn" class="secondary">Als PNG exportieren</button>
+      </div>
+      <div id="messages"></div>
+      <div id="posterArea"></div>
+    </section>
+
+    <aside id="controls">
+      <h2>EINSTELLUNGEN</h2>
+
+      <div class="control-section">
+        <h3>Text &amp; Wörter</h3>
+        <div>
+          <label for="posterText">Wort / Text für Poster</label>
+          <input type="text" id="posterText" placeholder="z. B. COLLAGE">
+        </div>
+        <div>
+          <label for="letterCount">Buchstaben-Anzahl <span class="valueDisplay" id="letterCountValue">120</span></label>
+          <input type="range" id="letterCount" min="1" max="200" value="120">
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="restrictLetters" checked>
+          <label for="restrictLetters">Nur Buchstaben aus dem Eingabewort verwenden</label>
+        </div>
+        <div class="color-inline">
+          <label for="letterColor">Buchstabenfarbe</label>
+          <input type="color" id="letterColor" value="#000000">
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h3>Schriftquellen &amp; Assets</h3>
+        <!-- Versteckt: Buchstaben-PNG Upload (Dateien/Ordner) -->
+        <div style="display: none;">
+          <label for="letterFiles">Buchstaben-PNG (Dateien/Ordner)</label>
+          <input type="file" id="letterFiles" webkitdirectory multiple accept="image/png">
+          <div class="hint">PNG-Dateien mit Buchstaben – einzeln oder als Ordner.</div>
+        </div>
+        
+        <!-- Versteckt: Zusätzliche PNG-Buchstaben (einzeln) -->
+        <div style="display: none;">
+          <label for="singleLetterFiles">Zusätzliche PNG-Buchstaben (einzeln)</label>
+          <input type="file" id="singleLetterFiles" multiple accept="image/png">
+          <div class="hint">Weitere PNG-Bilder mit Buchstaben hochladen.</div>
+        </div>
+
+        <div>
+          <label for="fontFiles">Schriftdateien (TTF/OTF/WOFF)</label>
+          <input type="file" id="fontFiles" multiple accept=".ttf,.otf,.woff,.woff2">
+          <div class="hint">Erzeugt automatisch PNG-Buchstaben aus den hochgeladenen Fonts.</div>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h3>Layout &amp; Platzierung</h3>
+        <div>
+          <label for="layoutMode">Layout-Modus</label>
+          <select id="layoutMode">
+          <option value="chaos">Chaotisch</option>
+          <option value="randomAuto">Zufall bei jedem Mix</option>
+          <option value="letterShape">Buchstabe</option>
+          <option value="grid">Raster</option>
+          <option value="circle">Kreisförmig</option>
+          <option value="spiral">Spirale</option>
+          <option value="diagonal">Diagonal</option>
+          <option value="wave">Wellenform</option>
+          <option value="line">Linienband</option>
+          <option value="zigzagColumns">Zickzack-Spalten</option>
+          <option value="verticalStripes">Vertikale Streifen</option>
+          <option value="concentricCircles">Konzentrische Kreise</option>
+          <option value="radialBurst">Radialer Ausbruch</option>
+          <option value="perlinNoise">Perlin-Rauschen (Organisch)</option>
+          <option value="fibonacciSpiral">Fibonacci-Spirale</option>
+          <option value="hexagonalGrid">Hexagonales Raster</option>
+          <option value="crossPattern">Kreuzform</option>
+          <option value="sineWaveArray">Sinuswellen-Reihe</option>
+          <option value="randomCluster">Zufälliger Cluster</option>
+          <option value="gravityField">Gravitationsfeld</option>
+          <option value="orbitPaths">Orbitalpfade</option>
+          <option value="scatteredRandom">Verstreut zufällig</option>
+          <option value="edgeAlignment">Randausrichtung</option>
+          <option value="coronaRays">Corona-Strahlen</option>
+          <option value="mandala">Mandala (Muster)</option>
+          <option value="dandelion">Löwenzahn (Organisch)</option>
+          <option value="galaxy">Galaxie (Spiral)</option>
+          <option value="staircase">Treppen (Muster)</option>
+          <option value="honeycomb">Bienenwaben</option>
+          <option value="flower">Blüte (Petale)</option>
+          <option value="gear">Zahnrad (Teeth)</option>
+          <option value="chain">Kette (Links)</option>
+          <option value="tsunami">Tsunami (Wellen)</option>
+          <option value="lightning">Blitz (Zick-Zack)</option>
+          <option value="web">Spinnennetz</option>
+          <option value="dna">DNA (Helix)</option>
+          <option value="rings">Ringe (Konz.)</option>
+          <option value="lissajous">Lissajous Kurve</option>
+          <option value="spiralGrid">Spiral-Grid</option>
+          <option value="sunburstGrid">Sunburst Grid</option>
+          <option value="triangularMatrix">Triangular Matrix</option>
+          <option value="spiralArms">Spiral Arms</option>
+          <option value="waveColumns">Wave Columns</option>
+          <option value="cascadeColumns">Cascade Columns</option>
+          <option value="orbitalSpiral">Orbital Spiral</option>
+          <option value="drapeCurtain">Drape Curtain</option>
+          <option value="helixStack">Helix Stack</option>
+          <option value="burstClusters">Burst Clusters</option>
+          <option value="rippleBands">Ripple Bands</option>
+          <option value="cityGrid">City Grid</option>
+          <option value="splitChevron">Split Chevron</option>
+          <option value="spiralBloom">Spiral Bloom</option>
+          <option value="radialGrid">Radial Grid</option>
+          <option value="fracturedLines">Fractured Lines</option>
+          <option value="orbitRibbon">Orbit Ribbon</option>
+          <option value="chaoticSpirals">Chaotic Spirals</option>
+          <option value="chaos2">Chaos Xtrem</option>
+        </select>
+      </div>
+
+        <div id="letterLayoutOptions" style="display: none;">
+          <label for="letterLayoutChar">Buchstabe für Layout</label>
+          <input type="text" id="letterLayoutChar" maxlength="1" placeholder="A">
+        </div>
+
+        <div>
+          <label for="scale">Skalierung (%) <span class="valueDisplay" id="scaleValue">100%</span></label>
+          <input type="range" id="scale" min="50" max="300" value="100">
+        </div>
+
+        <div>
+          <label for="maxRotation">Max. Rotation (°) <span class="valueDisplay" id="rotationValue">45°</span></label>
+          <input type="range" id="maxRotation" min="0" max="180" value="45">
+        </div>
+
+        <div>
+          <label for="overlapDensity">Überlagerungsdichte (%) <span class="valueDisplay" id="densityValue">60%</span></label>
+          <input type="range" id="overlapDensity" min="0" max="100" value="60">
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h3>Hintergrundbilder</h3>
+        <div>
+          <label for="backgroundImages">Hintergrund-Bilder (PNG/JPG)</label>
+          <input type="file" id="backgroundImages" multiple accept="image/png,image/jpeg,image/jpg">
+          <div class="hint">Bilder für den Hintergrund-Mix.</div>
+        </div>
+        <div>
+          <label for="posterBgColor">Poster-Hintergrundfarbe</label>
+          <input type="color" id="posterBgColor" value="#ffffff">
+        </div>
+        <div>
+          <label for="bgImageCount">Anzahl Hintergrund-Bilder <span class="valueDisplay" id="bgCountValue">24</span></label>
+          <input type="range" id="bgImageCount" min="0" max="80" value="24">
+        </div>
+        <div>
+          <label for="bgForegroundCount">Bilder im Vordergrund <span class="valueDisplay" id="bgFrontValue">6</span></label>
+          <input type="range" id="bgForegroundCount" min="0" max="40" value="6">
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="bgFullscreenToggle">
+          <label for="bgFullscreenToggle">Hintergrund füllt den ganzen Bereich</label>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h3>Bild-Look</h3>
+        <div>
+          <label for="bgImageOpacity">Hintergrundbild-Deckkraft <span class="valueDisplay" id="bgOpacityValue">90%</span></label>
+          <input type="range" id="bgImageOpacity" min="10" max="100" value="90">
+        </div>
+        <div>
+          <label for="bgImageScale">Hintergrundbild-Skala (%) <span class="valueDisplay" id="bgScaleValue">100%</span></label>
+          <input type="range" id="bgImageScale" min="50" max="200" value="100">
+        </div>
+        <div class="color-inline">
+          <label for="bgTintColor">Bild-Tönung</label>
+          <input type="color" id="bgTintColor" value="#ff5c00">
+        </div>
+        <div>
+          <label for="bgTintStrength">Tönungsstärke <span class="valueDisplay" id="bgTintStrengthValue">0%</span></label>
+          <input type="range" id="bgTintStrength" min="0" max="100" value="0">
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h3>Hintergrund Effekte</h3>
+        <div class="checkbox-row">
+          <input type="checkbox" id="bgEffectToggle">
+          <label for="bgEffectToggle">P5-Effekte auf Hintergrund</label>
+        </div>
+        <div>
+          <label for="bgEffectMode">Hintergrund-Effekt-Typ</label>
+          <select id="bgEffectMode">
+            <option value="none">Kein Effekt</option>
+            <option value="randomAuto">Zufälliger Effekt</option>
+            <option value="distortion">Verzerrung (Sine-Wellen)</option>
+            <option value="glitch">Glitch (VHS-Scan)</option>
+            <option value="colorshift">Farbversatz (RGB-Aberration)</option>
+            <option value="wave">Welle (Liquid)</option>
+            <option value="acid">Acid (LSD-Trip)</option>
+            <option value="kaleidoscope">Kaleidoskop (Symmetrisch)</option>
+            <option value="tunnel">Tunnel (Zoom-Effekt)</option>
+            <option value="melt">Melt (Schmelz-Effekt)</option>
+          <option value="neonGlow">Neon Glow</option>
+          <option value="speckle">Speckle Noise</option>
+          <option value="inkGhost">Ink Ghost</option>
+          <option value="flowLines">Flow Lines</option>
+          <option value="chromaticNova">Chromatic Nova</option>
+          <option value="smokeScreen">Smoke Screen</option>
+          <option value="inkbleed">Ink Bleed</option>
+          <option value="prism">Prisma Shift</option>
+            <option value="filmBurn">Film Burn</option>
+            <option value="grainPulse">Grain Pulse</option>
+            <option value="vectorField">Vector Field</option>
+            <option value="fractalMirror">Fraktal-Spiegel</option>
+            <option value="solarFlare">Solar Flare</option>
+            <option value="liquidMetal">Liquid Metal</option>
+            <option value="pixelDrift">Pixel Drift</option>
+            <option value="glimmer">Glimmer</option>
+            <option value="auraPulse">Aura Pulse</option>
+          </select>
+        </div>
+        <div>
+          <label for="bgEffectIntensity">Hintergrund-Effekt-Intensität <span class="valueDisplay" id="bgEffectIntensityValue">30%</span></label>
+          <input type="range" id="bgEffectIntensity" min="0" max="100" value="30">
+        </div>
+      </div>
+
+      <div class="control-section">
+        <h3>P5.JS Effekte</h3>
+        <div class="checkbox-row">
+          <input type="checkbox" id="enableP5Effects">
+          <label for="enableP5Effects">P5.JS Effekte aktivieren</label>
+        </div>
+        <div>
+          <label for="p5EffectMode">Effekt-Typ</label>
+          <select id="p5EffectMode">
+          <option value="randomAuto">Zufälliger Effekt</option>
+          <option value="distortion">Verzerrung (Sine-Wellen)</option>
+          <option value="glitch">Glitch (VHS-Scan)</option>
+          <option value="colorshift">Farbversatz (RGB-Aberration)</option>
+          <option value="wave">Welle (Liquid)</option>
+          <option value="cellular">Cellular (Zelluläre Automata)</option>
+          <option value="fractal">Fractal (Fraktale Zufall)</option>
+          <option value="voronoi">Voronoi (Geometrisch)</option>
+          <option value="turbulence">Turbulenz (Strömung)</option>
+          <option value="morphing">Morphing (Flüssig-Verformung)</option>
+          <option value="quantum">Quantum (Quanteneffekt)</option>
+          <option value="noise">Noise (Perlin-Rauschen)</option>
+          <option value="blockRot">Block-Rotation</option>
+          <option value="slit">Slit-Scan</option>
+          <option value="mirror">Mirror-Effekt</option>
+          <option value="scanline">Scanline (TV-Effekt)</option>
+          <option value="rgbShift">RGB-Shift</option>
+          <option value="edge">Edge-Detection</option>
+          <option value="posterize">Posterize</option>
+          <option value="swirl">Swirl (Wirbel)</option>
+          <option value="vortex">Vortex (Loch)</option>
+          <option value="scatter">Scatter (Chaos)</option>
+          <option value="kaleidoscope">Kaleidoskop (Symmetrisch)</option>
+          <option value="tunnel">Tunnel (Zoom-Effekt)</option>
+          <option value="acid">Acid (LSD-Trip)</option>
+          <option value="melt">Melt (Schmelz-Effekt)</option>
+          <option value="shatter">Shatter (Glas-Bruch)</option>
+          <option value="corrupt">Corrupt (Datei-Fehler)</option>
+          <option value="feedback">Feedback (Video-Echo)</option>
+          <option value="warp">Warp (Raum-Zeit)</option>
+          <option value="laser">Laser (Strahl-Effekt)</option>
+          <option value="blob">Blob (Amöben)</option>
+          <option value="slime">Slime (Flüssig)</option>
+          <option value="twine">Twine (Verdrehte Fäden)</option>
+          <option value="neonGlow">Neon Glow</option>
+          <option value="speckle">Speckle Noise</option>
+          <option value="inkGhost">Ink Ghost</option>
+          <option value="flowLines">Flow Lines</option>
+          <option value="chromaticNova">Chromatic Nova</option>
+          <option value="smokeScreen">Smoke Screen</option>
+          <option value="solarFlare">Solar Flare</option>
+          <option value="liquidMetal">Liquid Metal</option>
+          <option value="pixelDrift">Pixel Drift</option>
+          <option value="glimmer">Glimmer</option>
+          <option value="auraPulse">Aura Pulse</option>
+          <option value="inkbleed">Ink Bleed</option>
+          <option value="prism">Prisma Shift</option>
+          <option value="filmBurn">Film Burn</option>
+          <option value="grainPulse">Grain Pulse</option>
+          <option value="vectorField">Vector Field</option>
+          <option value="fractalMirror">Fraktal-Spiegel</option>
+        </select>
+      </div>
+      <div>
+        <label for="p5Intensity">Effekt-Intensität <span class="valueDisplay" id="p5IntensityValue">50%</span></label>
+        <input type="range" id="p5Intensity" min="0" max="100" value="50">
+      </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <script>
+    // Map für alle geladenen Buchstaben-Bilder
+    const letterImages = {};
+    // Array für Hintergrund-Bilder
+    const backgroundImages = [];
+    // Cache für bereits berechnete Hintergrund-Effekte (key: url_mode_intensity)
+    const bgEffectCache = {};
+    // Array mit Render-Items für Canvas-Export
+    const renderItems = [];
+    const DEFAULT_FONT_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜß0123456789!?&';
+    let currentBackgroundColor = '#ffffff';
+    const tintCanvas = document.createElement('canvas');
+    const tintCtx = tintCanvas.getContext('2d');
+    const letterLayoutCache = {};
+    let exportFileCounter = 1;
+
+    // P5.JS CANVAS EFFECTS - Wendet Effekte auf dem Canvas an
+    function applyP5Effects(sourceCanvas, config) {
+      if (!config.enableP5Effects) return sourceCanvas;
+      
+      const mode = config.p5EffectMode || 'distortion';
+      const intensity = (config.p5Intensity || 50) / 100;
+      
+      const outputCanvas = document.createElement('canvas');
+      outputCanvas.width = sourceCanvas.width;
+      outputCanvas.height = sourceCanvas.height;
+      const ctx = outputCanvas.getContext('2d');
+      
+      // Zeichne Original zuerst
+      ctx.drawImage(sourceCanvas, 0, 0);
+      
+      if (mode === 'distortion') {
+        // BRUTALISTISCHER VERZERRUNGSEFFEKT - Holographische Verschiebung
+        // Mehrfach verschobene Kopien für Verzerrungseffekt
+        const shifts = [
+          { x: 3, y: 0, alpha: 0.3 },
+          { x: -3, y: 2, alpha: 0.2 },
+          { x: 2, y: -2, alpha: 0.25 }
+        ];
+        
+        ctx.globalCompositeOperation = 'lighten';
+        for (const shift of shifts) {
+          const amount = intensity * 15;
+          ctx.globalAlpha = shift.alpha * intensity;
+          ctx.drawImage(sourceCanvas, shift.x * amount, shift.y * amount);
+        }
+        
+        // Zusätzliche Scan-Line Verzerrung
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.globalAlpha = 0.05 * intensity;
+        for (let y = 0; y < outputCanvas.height; y += 3) {
+          if (Math.random() > 0.7) {
+            ctx.drawImage(sourceCanvas, Math.random() * 4 - 2, 0, outputCanvas.width, 2, 0, y, outputCanvas.width, 2);
+          }
+        }
+        
+        return outputCanvas;
+        
+      } else if (mode === 'glitch') {
+        // EXTREME GLITCH - Chaotische horizontale Versätze
+        ctx.globalCompositeOperation = 'lighten';
+        
+        // Mehrere chaotische Block-Versätze
+        const glitchCount = Math.floor(8 + intensity * 20);
+        for (let i = 0; i < glitchCount; i++) {
+          const startY = Math.random() * outputCanvas.height;
+          const blockHeight = Math.random() * (outputCanvas.height * 0.2) + 10;
+          const offsetX = (Math.random() - 0.5) * intensity * 120;
+          
+          ctx.globalAlpha = 0.3 + Math.random() * 0.6 * intensity;
+          ctx.drawImage(
+            sourceCanvas,
+            Math.max(0, offsetX), startY,
+            outputCanvas.width - Math.abs(offsetX), blockHeight,
+            offsetX > 0 ? offsetX : 0, startY,
+            outputCanvas.width - Math.abs(offsetX), blockHeight
+          );
+        }
+        
+        // Zusätzliche farbige Pixel-Scatter
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = 0.6 * intensity;
+        for (let i = 0; i < intensity * 1000; i++) {
+          const x = Math.random() * outputCanvas.width;
+          const y = Math.random() * outputCanvas.height;
+          const size = Math.random() * 2 + 0.5;
+          const colors = ['rgba(255,0,0', 'rgba(0,255,0', 'rgba(0,0,255'];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          ctx.fillStyle = color + `,${Math.random() * 0.4})`;
+          ctx.fillRect(x, y, size, size);
+        }
+        
+        return outputCanvas;
+        
+      } else if (mode === 'colorshift') {
+        // PSYCHEDELISCHER FARBVERSATZ - RGB Channel Separation
+        ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+        
+        const offsets = [
+          { dx: intensity * 20, dy: 0, alpha: 0.7 },
+          { dx: -intensity * 15, dy: intensity * 10, alpha: 0.6 },
+          { dx: intensity * 10, dy: -intensity * 12, alpha: 0.65 }
+        ];
+        
+        ctx.globalCompositeOperation = 'screen';
+        for (const offset of offsets) {
+          ctx.globalAlpha = offset.alpha;
+          ctx.drawImage(sourceCanvas, offset.dx, offset.dy);
+        }
+        
+        // RGB Inversion bei hoher Intensität
+        if (intensity > 0.4) {
+          ctx.globalCompositeOperation = 'lighten';
+          ctx.globalAlpha = 0.15 * (intensity - 0.4) * 2.5;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, outputCanvas.width, outputCanvas.height);
+        }
+        
+        return outputCanvas;
+        
+      } else if (mode === 'wave') {
+        // GESTURATIVE WELLENBEWEGUNG - Canvas-Skewing
+        ctx.globalCompositeOperation = 'source-over';
+        
+        const waveAmount = 3 + intensity * 20;
+        const freq = 0.005 + intensity * 0.01;
+        
+        // Mehrere Scan-Lines mit Versatz
+        for (let y = 0; y < outputCanvas.height; y += 2) {
+          const offset = Math.sin(y * freq) * waveAmount;
+          ctx.globalAlpha = 0.95;
+          ctx.drawImage(
+            sourceCanvas,
+            0, y,
+            outputCanvas.width, 2,
+            offset, y,
+            outputCanvas.width, 2
+          );
+        }
+        
+        // Extra Wave-Layer
+        ctx.globalCompositeOperation = 'lighten';
+        ctx.globalAlpha = 0.2 * intensity;
+        for (let y = 0; y < outputCanvas.height; y += 3) {
+          const offset = Math.cos(y * freq * 1.5) * waveAmount * 0.5;
+          ctx.drawImage(
+            sourceCanvas,
+            0, y,
+            outputCanvas.width, 3,
+            offset * 0.5, y,
+            outputCanvas.width, 3
+          );
+        }
+        
+        return outputCanvas;
+        
+      } else if (mode === 'pixelate') {
+        // PIXELATED BRUTALISM - Blocky Reduction
+        const pixelSize = Math.max(2, Math.floor(intensity * 25 + 3));
+        
+        // Erstelle temporären Canvas für Pixelation
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = Math.ceil(outputCanvas.width / pixelSize);
+        tempCanvas.height = Math.ceil(outputCanvas.height / pixelSize);
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // Zeichne verkleinert
+        tempCtx.drawImage(sourceCanvas, 0, 0, outputCanvas.width, outputCanvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
+        
+        // Zeichne vergrößert zurück (Pixelation-Effekt)
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, outputCanvas.width, outputCanvas.height);
+        
+        // Zusätzliche Offset-Kopien für Brutalism
+        if (intensity > 0.3) {
+          ctx.globalAlpha = 0.25 * intensity;
+          ctx.globalCompositeOperation = 'lighten';
+          const offset1X = Math.sin(Date.now() * 0.001) * pixelSize;
+          const offset1Y = Math.cos(Date.now() * 0.0015) * pixelSize;
+          ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, offset1X, offset1Y, outputCanvas.width, outputCanvas.height);
+          ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, -offset1X * 0.5, offset1Y * 0.5, outputCanvas.width, outputCanvas.height);
+        }
+        
+        return outputCanvas;
+      }
+      
+      return outputCanvas;
+    }
+
+    function registerLetterImage(letter, src, knownWidth = null, knownHeight = null) {
+      if (!letter) return;
+      const entry = {
+        src,
+        width: knownWidth,
+        height: knownHeight,
+        image: null,
+        tintCache: {}
+      };
+      if (!letterImages[letter]) letterImages[letter] = [];
+      letterImages[letter].push(entry);
+      const img = new Image();
+      img.onload = () => {
+        entry.width = img.naturalWidth || img.width || entry.width || 0;
+        entry.height = img.naturalHeight || img.height || entry.height || 0;
+        entry.image = img;
+      };
+      img.crossOrigin = 'anonymous';
+      img.src = src;
+    }
+
+    function getTintedSource(entry, config) {
+      if (!entry) return null;
+      const color = config && config.letterColor ? config.letterColor.trim().toLowerCase() : null;
+      const enableEffects = !!(config && config.enableP5Effects);
+      const effectMode = enableEffects ? (config.p5EffectMode || 'distortion') : null;
+      const effectIntensity = enableEffects ? (parseInt(config.p5Intensity, 10) || 0) : 0;
+      if (!color && !enableEffects) {
+        return entry.src;
+      }
+      entry.tintCache = entry.tintCache || {};
+      const cacheKey = `${color || 'original'}_${effectMode || 'none'}_${effectIntensity}`;
+      if (entry.tintCache[cacheKey]) {
+        return entry.tintCache[cacheKey];
+      }
+      const baseImage = entry.image;
+      if (!baseImage || !(baseImage.naturalWidth || baseImage.width)) {
+        return entry.src;
+      }
+      const width = baseImage.naturalWidth || baseImage.width;
+      const height = baseImage.naturalHeight || baseImage.height;
+      tintCanvas.width = width;
+      tintCanvas.height = height;
+      tintCtx.clearRect(0, 0, width, height);
+      tintCtx.drawImage(baseImage, 0, 0, width, height);
+      if (color) {
+        tintCtx.globalCompositeOperation = 'source-in';
+        tintCtx.fillStyle = color;
+        tintCtx.fillRect(0, 0, width, height);
+        tintCtx.globalCompositeOperation = 'source-over';
+      }
+      if (enableEffects) {
+        const normalizedIntensity = Math.max(0, Math.min(1, (effectIntensity || 0) / 100));
+        const size = Math.max(width, height);
+        applyGenerativeFontEffects(tintCtx, tintCanvas, effectMode, normalizedIntensity, size, Math.random());
+      }
+      const tintedData = tintCanvas.toDataURL('image/png');
+      entry.tintCache[cacheKey] = tintedData;
+      return tintedData;
+    }
+
+    function normalizeLetterChar(ch) {
+      if (!ch) return '';
+      if (ch === 'ß' || ch === 'ẞ') return 'ß';
+      return ch.toUpperCase();
+    }
+
+    function getLetterShapePoints(letterChar) {
+      const normalized = normalizeLetterChar(letterChar || 'A') || 'A';
+      if (letterLayoutCache[normalized]) return letterLayoutCache[normalized];
+      const size = 360;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, size, size);
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `bold ${size * 0.75}px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+      ctx.fillText(normalized, size / 2, size / 2 + size * 0.05);
+      const imageData = ctx.getImageData(0, 0, size, size);
+      const data = imageData.data;
+      const points = [];
+      const step = 3;
+      let minX = size;
+      let minY = size;
+      let maxX = 0;
+      let maxY = 0;
+      for (let y = 0; y < size; y += step) {
+        for (let x = 0; x < size; x += step) {
+          const alpha = data[(y * size + x) * 4 + 3];
+          if (alpha > 30) {
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          }
+        }
+      }
+      if (maxX <= minX || maxY <= minY) {
+        letterLayoutCache[normalized] = [];
+        return letterLayoutCache[normalized];
+      }
+      const width = Math.max(1, maxX - minX);
+      const height = Math.max(1, maxY - minY);
+      for (let y = minY; y <= maxY; y += step) {
+        for (let x = minX; x <= maxX; x += step) {
+          const alpha = data[(y * size + x) * 4 + 3];
+          if (alpha > 30) {
+            points.push({
+              x: (x - minX) / width,
+              y: (y - minY) / height
+            });
+          }
+        }
+      }
+      letterLayoutCache[normalized] = points;
+      return points;
+    }
+
+    function sampleLetterShapePositions(letterChar, count) {
+      const basePoints = getLetterShapePoints(letterChar);
+      if (!basePoints.length || count <= 0) return [];
+      const sampled = [];
+      const total = basePoints.length;
+      const chosen = new Set();
+      for (let i = 0; i < count; i++) {
+        let idx = Math.floor(Math.random() * total);
+        let guard = 0;
+        while (chosen.has(idx) && chosen.size < total && guard < total * 2) {
+          idx = (idx + Math.floor(Math.random() * 7) + 1) % total;
+          guard++;
+        }
+        chosen.add(idx);
+        const point = basePoints[idx];
+        const jitter = 0.025 + Math.random() * 0.02;
+        sampled.push({
+          x: Math.min(1, Math.max(0, point.x + (Math.random() - 0.5) * jitter)),
+          y: Math.min(1, Math.max(0, point.y + (Math.random() - 0.5) * jitter))
+        });
+      }
+      return sampled;
+    }
+
+    function sanitizeWordInput(text) {
+      const filtered = (text || '').replace(/[^A-Za-zÄÖÜäöüß0-9!?&]/g, '');
+      return filtered.split('').map(ch => normalizeLetterChar(ch)).join('');
+    }
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    // Hilfsfunktionen für Export-Bounds
+    function getItemBounds(item) {
+      const rotation = (item.rotation || 0) * Math.PI / 180;
+      const cos = Math.abs(Math.cos(rotation));
+      const sin = Math.abs(Math.sin(rotation));
+      const width = item.width || 0;
+      const height = item.height || 0;
+      let cx, cy;
+      if (item.type === 'letter') {
+        cx = item.x;
+        cy = item.y;
+      } else {
+        cx = item.x + width / 2;
+        cy = item.y + height / 2;
+      }
+      const halfWidth = (width * cos + height * sin) / 2;
+      const halfHeight = (width * sin + height * cos) / 2;
+      return {
+        minX: cx - halfWidth,
+        maxX: cx + halfWidth,
+        minY: cy - halfHeight,
+        maxY: cy + halfHeight
+      };
+    }
+
+    function computeCanvasBounds(items, padding = 30) {
+      if (!items.length) {
+        return { minX: 0, minY: 0, width: 1, height: 1 };
+      }
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      items.forEach(item => {
+        const bounds = getItemBounds(item);
+        minX = Math.min(minX, bounds.minX);
+        minY = Math.min(minY, bounds.minY);
+        maxX = Math.max(maxX, bounds.maxX);
+        maxY = Math.max(maxY, bounds.maxY);
+      });
+      if (!isFinite(minX) || !isFinite(minY)) {
+        return { minX: 0, minY: 0, width: 1, height: 1 };
+      }
+      minX -= padding;
+      minY -= padding;
+      maxX += padding;
+      maxY += padding;
+      return {
+        minX,
+        minY,
+        width: Math.max(1, maxX - minX),
+        height: Math.max(1, maxY - minY)
+      };
+    }
+
+    // Einfaches Messaging im UI
+    function clearMessages() {
+      document.getElementById('messages').innerHTML = '';
+    }
+    function addMessage(text, type = 'info') {
+      const box = document.getElementById('messages');
+      const div = document.createElement('div');
+      div.className = `msg ${type}`;
+      div.textContent = text;
+      box.appendChild(div);
+    }
+
+    // Dateien einlesen und nach Buchstaben gruppieren
+    function handleFileInput(files) {
+      clearMessages();
+      Object.keys(letterImages).forEach(k => delete letterImages[k]);
+      if (!files || !files.length) {
+        addMessage('Keine Dateien ausgewählt.', 'error');
+        return;
+      }
+      let loaded = 0;
+      Array.from(files).forEach(file => {
+        if (!file.name.toLowerCase().endsWith('.png')) return;
+        const letter = extractLetterFromName(file.name);
+        if (!letter) return;
+        const url = URL.createObjectURL(file);
+        registerLetterImage(letter, url);
+        loaded++;
+      });
+      if (!loaded) {
+        addMessage('Es wurden keine PNG-Buchstaben erkannt.', 'error');
+      } else {
+        addMessage(`${loaded} Buchstaben-Varianten geladen.`, 'info');
+      }
+    }
+
+    // Extrahiert den Zielbuchstaben aus dem Dateinamen (erstes Zeichen)
+    function extractLetterFromName(name) {
+      const match = name.match(/^([A-Za-zÄÖÜäöüß])/);
+      return match ? normalizeLetterChar(match[1]) : null;
+    }
+
+    // Lädt Hintergrund-Bilder und speichert deren URLs
+    function handleBackgroundImageInput(files) {
+      clearMessages();
+      backgroundImages.length = 0; // Array leeren
+      if (!files || !files.length) {
+        addMessage('Keine Hintergrund-Bilder ausgewählt.', 'info');
+        return;
+      }
+      let loaded = 0;
+      Array.from(files).forEach(file => {
+        const ext = file.name.toLowerCase();
+        if (!ext.endsWith('.png') && !ext.endsWith('.jpg') && !ext.endsWith('.jpeg')) return;
+        const url = URL.createObjectURL(file);
+        backgroundImages.push(url);
+        loaded++;
+      });
+      if (!loaded) {
+        addMessage('Keine gültigen Hintergrund-Bilder gefunden (PNG/JPG).', 'error');
+      } else {
+        addMessage(`${loaded} Hintergrund-Bilder geladen.`, 'info');
+      }
+    }
+
+    function buildFontCharacterList() {
+      const inputEl = document.getElementById('posterText');
+      const typed = (inputEl ? inputEl.value : '').replace(/[^A-Za-zÄÖÜäöüß0-9!?&]/g, '');
+      const combined = (DEFAULT_FONT_CHARSET + typed).split('');
+      const seen = [];
+      combined.forEach(ch => {
+        const letter = normalizeLetterChar(ch);
+        if (letter && !seen.includes(letter)) {
+          seen.push(letter);
+        }
+      });
+      return seen;
+    }
+
+    async function handleFontInput(fileList) {
+      clearMessages();
+      const files = Array.from(fileList || []);
+      if (!files.length) {
+        addMessage('Keine Schriftdateien ausgewählt.', 'error');
+        return;
+      }
+      if (typeof FontFace === 'undefined') {
+        addMessage('Der Browser unterstützt die FontFace API nicht.', 'error');
+        return;
+      }
+      const letters = buildFontCharacterList();
+      if (!letters.length) {
+        addMessage('Kein gültiger Zeichensatz verfügbar.', 'error');
+        return;
+      }
+      const supportedExtensions = /\.(ttf|otf|woff2?)$/;
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const size = 320;
+      canvas.width = size;
+      canvas.height = size;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const glyphColor = getComputedStyle(document.body).getPropertyValue('--text') || '#111';
+      let generated = 0;
+
+      for (const file of files) {
+        if (!supportedExtensions.test(file.name.toLowerCase())) continue;
+        try {
+          const buffer = await file.arrayBuffer();
+          const fontName = `uploadedFont-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+          const font = new FontFace(fontName, buffer);
+          await font.load();
+          document.fonts.add(font);
+
+          letters.forEach(letter => {
+            // Normale Rendering
+            ctx.clearRect(0, 0, size, size);
+            ctx.fillStyle = glyphColor.trim() || '#111';
+            ctx.font = `${size * 0.7}px "${fontName}"`;
+            ctx.fillText(letter, size / 2, size / 2 + size * 0.05);
+            
+            // Wende generative P5-Effekte auf die Schrift an (wenn aktiviert)
+            const enableEffects = document.getElementById('enableP5Effects') ? document.getElementById('enableP5Effects').checked : false;
+            if (enableEffects) {
+              const modeValue = document.getElementById('p5EffectMode') ? document.getElementById('p5EffectMode').value : 'distortion';
+              const mode = resolveP5EffectMode(modeValue);
+              const intensity = parseInt(document.getElementById('p5Intensity') ? document.getElementById('p5Intensity').value : 50, 10) / 100;
+              const variation = Math.random();
+              applyGenerativeFontEffects(ctx, canvas, mode, intensity, size, variation);
+            }
+            
+            const dataUrl = canvas.toDataURL('image/png');
+            registerLetterImage(letter, dataUrl, size, size);
+            generated++;
+          });
+        } catch (err) {
+          console.error('Schrift konnte nicht geladen werden', err);
+          addMessage(`Schrift "${file.name}" konnte nicht geladen werden.`, 'error');
+        }
+      }
+
+      if (generated) {
+        addMessage(`${generated} Buchstaben aus Schriften generiert.`, 'info');
+      } else {
+        addMessage('Keine gültigen Schriftdateien verarbeitet.', 'error');
+      }
+    }
+
+    // Generative Effekte direkt auf Schrift-Canvas anwenden - BRUTAL & STRUKTURIERT
+    function applyGenerativeFontEffects(ctx, canvas, mode, intensity, size, variation = Math.random()) {
+      if (mode === 'distortion') {
+        // PERLIN-NOISE ÄHNLICHE VERZERRUNG - Organisch aber strukturiert
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const amplitude = intensity * 40;
+        const frequency = 0.008 + variation * 0.012;
+        
+        // Strukturierte Wellen-basierte Verzerrung
+        for (let y = 0; y < size; y++) {
+          // Haupt-Wellenmuster
+          const wave = Math.sin(y * frequency + variation * Math.PI * 2) * amplitude;
+          const secondWave = Math.cos(y * frequency * 0.7 - variation * Math.PI) * amplitude * 0.6;
+          const baseline = wave + secondWave;
+          
+          for (let x = 0; x < size; x++) {
+            // Sekundäre X-Verzerrung mit Struktur
+            const xWave = Math.sin(x * frequency * 0.5) * amplitude * 0.7;
+            
+            let sourceX = Math.floor(x + baseline * 0.3 + xWave);
+            let sourceY = Math.floor(y + baseline);
+            
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            
+            const sourceIdx = (sourceY * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'glitch') {
+        // SCAN-LINE GLITCH - Strukturierter digitaler Fehler (wie echtes VHS-Glitch)
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        // Horizontale Scan-Line Versätze - regelmäßig nicht random
+        const lineHeight = Math.floor(3 + intensity * 8);
+        const glitchAmount = Math.floor(intensity * 50 + variation * 50);
+        
+        for (let y = 0; y < size; y++) {
+          // Entscheide basierend auf y-Position ob Glitch oder nicht
+          const glitchLine = Math.floor(y / lineHeight) % Math.floor(2 + intensity * 3) === Math.floor(variation * 3);
+          
+          if (glitchLine) {
+            const offset = Math.sin(y * 0.02 + variation * Math.PI * 2) * glitchAmount;
+            
+            for (let x = 0; x < size; x++) {
+              let sourceX = Math.floor(x + offset);
+              sourceX = ((sourceX % size) + size) % size;
+              
+              const sourceIdx = (y * size + sourceX) * 4;
+              const targetIdx = (y * size + x) * 4;
+              
+              // RGB-Kanal Separation (echtes Glitch-Feeling)
+              data[targetIdx] = tempData[sourceIdx];
+              data[targetIdx + 1] = tempData[sourceIdx + 1];
+              data[targetIdx + 2] = tempData[sourceIdx + 2];
+              data[targetIdx + 3] = tempData[sourceIdx + 3];
+            }
+          }
+        }
+        
+        // RGB-Channel Split für extremeres Glitch
+        if (intensity > 0.4) {
+          const splitAmount = Math.floor(intensity * 15);
+          for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+              const idx = (y * size + x) * 4;
+              
+              // Red Channel leicht nach rechts
+              if (x + splitAmount < size) {
+                const redIdx = (y * size + (x + splitAmount)) * 4;
+                data[idx] = (data[idx] + tempData[redIdx]) / 2;
+              }
+              // Blue Channel leicht nach links
+              if (x - splitAmount >= 0) {
+                const blueIdx = (y * size + (x - splitAmount)) * 4;
+                data[idx + 2] = (data[idx + 2] + tempData[blueIdx + 2]) / 2;
+              }
+            }
+          }
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'colorshift') {
+        // RGB CHANNEL SEPARATION - Chromatische Aberration (wie p5.createGraphics mit Channels)
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        // Definierte Channel-Offsets basierend auf Variation
+        const redShift = Math.floor(intensity * 25 * (1 + variation));
+        const blueShift = Math.floor(intensity * 15 * (1 - variation * 0.5));
+        
+        // Red Channel nach oben-rechts verschieben
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const sourceX = ((x - redShift) % size + size) % size;
+            const sourceY = ((y - Math.floor(redShift * 0.5)) % size + size) % size;
+            const sourceIdx = (sourceY * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx]; // Red
+          }
+        }
+        
+        // Blue Channel nach unten-links verschieben
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const sourceX = ((x + blueShift) % size + size) % size;
+            const sourceY = ((y + Math.floor(blueShift * 0.7)) % size + size) % size;
+            const sourceIdx = (sourceY * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx + 2] = tempData[sourceIdx + 2]; // Blue
+          }
+        }
+        
+        // Green Channel bleibt normal
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'wave') {
+        // SINE WAVE DISPLACEMENT - Strukturierte Wellenbewegung wie p5.Waves
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const wavelength = 20 + intensity * 40;
+        const amplitude = intensity * 35;
+        const wavelength3 = 15 + intensity * (20 + variation * 15);
+        const amplitude1 = intensity * (40 + variation * 30);
+        const amplitude2 = intensity * (30 + variation * 25);
+        const amplitude3 = intensity * (25 + variation * 20);
+        
+        
+        for (let y = 0; y < size; y++) {
+          // Strukturierte Sine-Wave mit Phase
+          const phase = variation * Math.PI * 2;
+          const yNorm = y / wavelength;
+          const waveOffset = Math.sin(yNorm + phase) * amplitude;
+          
+          for (let x = 0; x < size; x++) {
+            let sourceX = Math.floor(x + waveOffset);
+            sourceX = ((sourceX % size) + size) % size;
+            
+            const sourceIdx = (y * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'pixelate') {
+        // PIXELATION MIT STRUKTUR - Mosaic-Effekt wie p5.resizeMode()
+        const pixelSize = Math.floor(2 + intensity * 20 + variation * 8);
+        
+        // Down-sample dann Up-sample für Pixelation
+        const smallCanvas = document.createElement('canvas');
+        smallCanvas.width = Math.ceil(size / pixelSize);
+        smallCanvas.height = Math.ceil(size / pixelSize);
+        const smallCtx = smallCanvas.getContext('2d');
+        smallCtx.imageSmoothingEnabled = false;
+        
+        smallCtx.drawImage(canvas, 0, 0, size, size, 0, 0, smallCanvas.width, smallCanvas.height);
+        
+        ctx.imageSmoothingEnabled = false;
+        ctx.clearRect(0, 0, size, size);
+        ctx.drawImage(smallCanvas, 0, 0, smallCanvas.width, smallCanvas.height, 0, 0, size, size);
+        
+        // Zusätzliche Layer mit Offsets für Brutalismus
+        if (intensity > 0.3) {
+          ctx.globalAlpha = 0.2 * intensity;
+          ctx.globalCompositeOperation = 'screen';
+          
+          const offsetAmount = Math.floor(pixelSize * variation);
+          ctx.drawImage(smallCanvas, 0, 0, smallCanvas.width, smallCanvas.height, offsetAmount, offsetAmount, size, size);
+          
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = 1;
+        }
+        
+      } else if (mode === 'cellular') {
+        // CELLULAR AUTOMATA - Zelluläre Verformung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const cellSize = Math.floor(2 + intensity * 6);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const cellX = Math.floor(x / cellSize);
+            const cellY = Math.floor(y / cellSize);
+            const rand = Math.sin(cellX * 12.9898 + cellY * 78.233 + variation * 43758.5453) * 0.5 + 0.5;
+            
+            let sourceX = x;
+            let sourceY = y;
+            
+            if (rand > 0.5 - intensity * 0.3) {
+              sourceX = ((x + Math.floor(rand * intensity * 30)) % size + size) % size;
+              sourceY = ((y + Math.floor((1-rand) * intensity * 30)) % size + size) % size;
+            }
+            
+            const sourceIdx = (sourceY * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'fractal') {
+        // FRACTAL NOISE - Fraktale Chaos-Struktur
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            let offset = 0;
+            let amplitude = intensity * 40;
+            let frequency = 0.005;
+            
+            // Mehrlagiges Fractal Browning Motion
+            for (let i = 0; i < 3; i++) {
+              offset += Math.sin(x * frequency + variation * i) * amplitude;
+              amplitude *= 0.5;
+              frequency *= 2;
+            }
+            
+            let sourceX = Math.floor(x + offset);
+            sourceX = ((sourceX % size) + size) % size;
+            
+            const sourceIdx = (y * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'voronoi') {
+        // VORONOI DIAGRAM - Geometrische Auflösung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const pointCount = Math.floor(3 + intensity * 10);
+        const points = [];
+        
+        for (let i = 0; i < pointCount; i++) {
+          points.push({
+            x: Math.sin(i + variation) * size * 0.4 + size * 0.5,
+            y: Math.cos(i * 0.7 + variation) * size * 0.4 + size * 0.5,
+            idx: i
+          });
+        }
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            let minDist = Infinity;
+            let nearestIdx = 0;
+            
+            for (let p of points) {
+              const dx = x - p.x;
+              const dy = y - p.y;
+              const dist = dx * dx + dy * dy;
+              if (dist < minDist) {
+                minDist = dist;
+                nearestIdx = p.idx;
+              }
+            }
+            
+            const offset = Math.floor(minDist / (size * intensity + 1)) % size;
+            const sourceX = ((x + offset) % size + size) % size;
+            
+            const sourceIdx = (y * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'turbulence') {
+        // TURBULENCE - Strömungs-Verformung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const time = variation * Math.PI * 2;
+            const x0 = x / size;
+            const y0 = y / size;
+            
+            // Mehrdimensionales Noise Pattern
+            const v1 = Math.sin(x0 * 5 + time) * Math.cos(y0 * 5) * intensity * 25;
+            const v2 = Math.sin(y0 * 7 - time * 0.7) * Math.cos(x0 * 3) * intensity * 25;
+            
+            let sourceX = Math.floor(x + v1 + v2);
+            let sourceY = Math.floor(y + (v1 - v2) * 0.5);
+            
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            
+            const sourceIdx = (sourceY * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'morphing') {
+        // MORPHING - Flüssige Metamorphose
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const strength = intensity * 50;
+        const time = variation * Math.PI * 4;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const dx = (x - centerX) / size;
+            const dy = (y - centerY) / size;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            
+            const distortX = Math.cos(angle * 4 + time) * Math.sin(distance * 10 + time * 0.5) * strength;
+            const distortY = Math.sin(angle * 3 - time * 0.7) * Math.cos(distance * 8 - time) * strength;
+            
+            let sourceX = Math.floor(x + distortX);
+            let sourceY = Math.floor(y + distortY);
+            
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            
+            const sourceIdx = (sourceY * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'quantum') {
+        // QUANTUM EFFECT - Unbestimmtheits-Prinzip
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const idx = (y * size + x) * 4;
+            
+            // Mehrfach-Verschiebungen für Superposition-Effekt
+            let r = 0, g = 0, b = 0, a = 0, count = 0;
+            
+            const offsets = [
+              [intensity * 15, intensity * 15],
+              [-intensity * 12, intensity * 18],
+              [intensity * 20, -intensity * 10],
+              [-intensity * 8, -intensity * 15],
+              [0, intensity * 25]
+            ];
+            
+            for (let [ox, oy] of offsets) {
+              let sx = Math.floor(x + ox);
+              let sy = Math.floor(y + oy);
+              sx = ((sx % size) + size) % size;
+              sy = ((sy % size) + size) % size;
+              
+              const sIdx = (sy * size + sx) * 4;
+              r += tempData[sIdx];
+              g += tempData[sIdx + 1];
+              b += tempData[sIdx + 2];
+              a += tempData[sIdx + 3];
+              count++;
+            }
+            
+            data[idx] = Math.floor(r / count);
+            data[idx + 1] = Math.floor(g / count);
+            data[idx + 2] = Math.floor(b / count);
+            data[idx + 3] = Math.floor(a / count);
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        
+      } else if (mode === 'noise') {
+        // PERLIN-LIKE NOISE - Organisches Rauschen
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const scale = 0.01 + intensity * 0.02;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            // Simplex-ähnliches Noise
+            const n1 = Math.sin(x * scale + variation) * Math.cos(y * scale * 1.3);
+            const n2 = Math.sin((x + y) * scale * 0.7 - variation) * Math.cos((x - y) * scale * 0.9);
+            const n3 = Math.sin(y * scale * 1.7 + variation * 2) * Math.cos(x * scale * 1.1);
+            
+            const offset = (n1 + n2 + n3) / 3 * intensity * 30;
+            let sourceX = Math.floor(x + offset);
+            sourceX = ((sourceX % size) + size) % size;
+            
+            const sourceIdx = (y * size + sourceX) * 4;
+            const targetIdx = (y * size + x) * 4;
+            
+            data[targetIdx] = tempData[sourceIdx];
+            data[targetIdx + 1] = tempData[sourceIdx + 1];
+            data[targetIdx + 2] = tempData[sourceIdx + 2];
+            data[targetIdx + 3] = tempData[sourceIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'blockRot') {
+        // Block-Rotation - Brutale Rechteck-Verdrehung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const blockSize = Math.max(4, Math.floor(6 - intensity * 5));
+        for (let by = 0; by < size; by += blockSize) {
+          for (let bx = 0; bx < size; bx += blockSize) {
+            const angle = (bx + by + variation * 100) * intensity * 0.5;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const cx = bx + blockSize / 2;
+            const cy = by + blockSize / 2;
+            
+            for (let y = by; y < Math.min(by + blockSize, size); y++) {
+              for (let x = bx; x < Math.min(bx + blockSize, size); x++) {
+                const dx = x - cx;
+                const dy = y - cy;
+                let nx = Math.floor(cx + dx * cos - dy * sin);
+                let ny = Math.floor(cy + dx * sin + dy * cos);
+                nx = ((nx % size) + size) % size;
+                ny = ((ny % size) + size) % size;
+                
+                const srcIdx = (ny * size + nx) * 4;
+                const dstIdx = (y * size + x) * 4;
+                data[dstIdx] = tempData[srcIdx];
+                data[dstIdx + 1] = tempData[srcIdx + 1];
+                data[dstIdx + 2] = tempData[srcIdx + 2];
+              }
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'slit') {
+        // Slit-Scan - Vertikale Streifen-Verzerrung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const slitWidth = Math.max(2, Math.floor(8 * (1 - intensity)));
+        const slitOffset = 15 + variation * 30;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            let sourceX = x;
+            if ((Math.floor(x / slitWidth) % 2) === 0) {
+              sourceX = Math.floor((x + slitOffset * intensity) % size);
+            }
+            sourceX = ((sourceX % size) + size) % size;
+            
+            const srcIdx = (y * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'mirror') {
+        // Mirror-Effekt - Spiegelung mit Fehler
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const mirrorAxis = Math.floor(size * (0.3 + variation * 0.4));
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            let sourceX = x;
+            if (x > mirrorAxis) {
+              sourceX = Math.floor(mirrorAxis - (x - mirrorAxis) * (0.8 + intensity * 0.4));
+            }
+            sourceX = Math.max(0, Math.min(size - 1, sourceX));
+            
+            const srcIdx = (y * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'scanline') {
+        // Analog Scanline - TV-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        const lineHeight = Math.floor(2 + intensity * 4);
+        const intensity2 = 0.3 + intensity * 0.6;
+        
+        for (let y = 0; y < size; y++) {
+          if (Math.floor(y / lineHeight) % 2 === 0) {
+            for (let x = 0; x < size; x++) {
+              const idx = (y * size + x) * 4;
+              data[idx] = Math.floor(data[idx] * (1 - intensity2));
+              data[idx + 1] = Math.floor(data[idx + 1] * (1 - intensity2));
+              data[idx + 2] = Math.floor(data[idx + 2] * (1 - intensity2));
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'rgbShift') {
+        // RGB-Shift - Starke Chromatic Aberration
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const shiftAmount = Math.floor(3 + intensity * 12);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const dstIdx = (y * size + x) * 4;
+            
+            // R-Kanal von rechts
+            let rx = (x - shiftAmount + size) % size;
+            let srcIdx = (y * size + rx) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            
+            // G-Kanal von unten
+            let gy = (y - shiftAmount + size) % size;
+            srcIdx = (gy * size + x) * 4;
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            
+            // B-Kanal von oben
+            let by = (y + shiftAmount) % size;
+            srcIdx = (by * size + x) * 4;
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'edge') {
+        // Edge-Detection - Konturen extrahieren
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        for (let y = 1; y < size - 1; y++) {
+          for (let x = 1; x < size - 1; x++) {
+            const gx = (-tempData[((y-1)*size+(x-1))*4] - 2*tempData[((y)*size+(x-1))*4] - tempData[((y+1)*size+(x-1))*4] + 
+                        tempData[((y-1)*size+(x+1))*4] + 2*tempData[((y)*size+(x+1))*4] + tempData[((y+1)*size+(x+1))*4]) / 4;
+            const gy = (-tempData[((y-1)*size+(x-1))*4] - 2*tempData[((y-1)*size+(x))*4] - tempData[((y-1)*size+(x+1))*4] + 
+                        tempData[((y+1)*size+(x-1))*4] + 2*tempData[((y+1)*size+(x))*4] + tempData[((y+1)*size+(x+1))*4]) / 4;
+            const edge = Math.sqrt(gx*gx + gy*gy) * intensity * 2;
+            const idx = (y * size + x) * 4;
+            data[idx] = Math.min(255, edge);
+            data[idx + 1] = Math.min(255, edge);
+            data[idx + 2] = Math.min(255, edge);
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'posterize') {
+        // Posterize - Farben-Reduktion
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        const levels = Math.max(2, Math.floor(8 - intensity * 6));
+        
+        for (let i = 0; i < data.length; i += 4) {
+          for (let c = 0; c < 3; c++) {
+            const val = data[i + c];
+            data[i + c] = Math.round((val / 255) * levels) / levels * 255;
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'swirl') {
+        // Swirl - Wirbel-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const cx = size / 2;
+        const cy = size / 2;
+        const maxRadius = Math.sqrt(cx * cx + cy * cy);
+        const strength = intensity * Math.PI * 4;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const dx = x - cx;
+            const dy = y - cy;
+            const radius = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            const newAngle = angle + (strength * (1 - radius / maxRadius));
+            
+            let sourceX = Math.floor(cx + Math.cos(newAngle) * radius);
+            let sourceY = Math.floor(cy + Math.sin(newAngle) * radius);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'vortex') {
+        // Vortex - Schwarzes Loch-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const cx = size / 2;
+        const cy = size / 2;
+        const strength = intensity * 0.3;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const dx = x - cx;
+            const dy = y - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            
+            const newDist = dist * (1 - strength);
+            let sourceX = Math.floor(cx + Math.cos(angle) * newDist);
+            let sourceY = Math.floor(cy + Math.sin(angle) * newDist);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'scatter') {
+        // Scatter - Zufälliges Durcheinander
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const scatterAmount = Math.floor(intensity * 30);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const offset = Math.floor((Math.sin(x * 0.1 + y * 0.1 + variation) * 0.5 + 0.5) * scatterAmount);
+            let sourceX = (x + offset - scatterAmount / 2 + size) % size;
+            
+            const srcIdx = (y * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'kaleidoscope') {
+        // Kaleidoscope - Symmetrische Muster
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const sections = Math.floor(4 + intensity * 4);
+        const cx = size / 2;
+        const cy = size / 2;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const dx = x - cx;
+            const dy = y - cy;
+            const angle = Math.atan2(dy, dx);
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const sectionAngle = (angle % (Math.PI * 2 / sections)) * intensity;
+            let sourceX = Math.floor(cx + Math.cos(sectionAngle) * dist);
+            let sourceY = Math.floor(cy + Math.sin(sectionAngle) * dist);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'tunnel') {
+        // Tunnel - Zoom-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const cx = size / 2;
+        const cy = size / 2;
+        const strength = intensity * 0.5;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const dx = x - cx;
+            const dy = y - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            const newDist = dist / (1 + strength);
+            let sourceX = Math.floor(cx + Math.cos(angle) * newDist);
+            let sourceY = Math.floor(cy + Math.sin(angle) * newDist);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'acid') {
+        // Acid - LSD-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const hue = Math.atan2(Math.sqrt(3) * (g - b), 2 * r - g - b) * intensity * 5;
+          const shift = Math.floor(hue) % 3;
+          if (shift === 0) {
+            data[i] = Math.min(255, r + intensity * 50);
+            data[i + 1] = g;
+            data[i + 2] = Math.max(0, b - intensity * 30);
+          } else if (shift === 1) {
+            data[i] = g;
+            data[i + 1] = Math.min(255, g + intensity * 50);
+            data[i + 2] = b;
+          } else {
+            data[i] = b;
+            data[i + 1] = g;
+            data[i + 2] = Math.min(255, b + intensity * 50);
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'melt') {
+        // Melt - Schmelz-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const meltAmount = Math.floor(intensity * 20);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const melt = Math.floor(Math.sin(x * 0.05 + variation) * meltAmount);
+            let sourceY = Math.min(size - 1, y + melt);
+            const srcIdx = (sourceY * size + x) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'shatter') {
+        // Shatter - Glas-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const shards = Math.floor(5 + intensity * 20);
+        
+        for (let i = 0; i < shards; i++) {
+          const sx = Math.floor(Math.random() * size);
+          const sy = Math.floor(Math.random() * size);
+          const sw = Math.floor(20 + intensity * 40);
+          const sh = Math.floor(20 + intensity * 40);
+          const offsetX = Math.floor((Math.random() - 0.5) * intensity * 20);
+          const offsetY = Math.floor((Math.random() - 0.5) * intensity * 20);
+          
+          for (let y = sy; y < Math.min(sy + sh, size); y++) {
+            for (let x = sx; x < Math.min(sx + sw, size); x++) {
+              let sourceX = ((x + offsetX) % size + size) % size;
+              let sourceY = ((y + offsetY) % size + size) % size;
+              const srcIdx = (sourceY * size + sourceX) * 4;
+              const dstIdx = (y * size + x) * 4;
+              data[dstIdx] = tempData[srcIdx];
+              data[dstIdx + 1] = tempData[srcIdx + 1];
+              data[dstIdx + 2] = tempData[srcIdx + 2];
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'corrupt') {
+        // Corrupt - Datei-Fehler
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const corruptAmount = Math.floor(intensity * 100);
+        
+        for (let i = 0; i < corruptAmount; i++) {
+          const idx = Math.floor(Math.random() * (data.length / 4)) * 4;
+          const val = Math.floor(Math.random() * 256);
+          data[idx] = val;
+          data[idx + 1] = val;
+          data[idx + 2] = val;
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'feedback') {
+        // Feedback - Video-Rückkopplung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        for (let y = 1; y < size - 1; y++) {
+          for (let x = 1; x < size - 1; x++) {
+            const idx = (y * size + x) * 4;
+            const avg = (tempData[((y-1)*size+(x-1))*4] + tempData[((y-1)*size+x)*4] + tempData[((y-1)*size+(x+1))*4] + tempData[(y*size+(x-1))*4] + tempData[(y*size+(x+1))*4] + tempData[((y+1)*size+(x-1))*4] + tempData[((y+1)*size+x)*4] + tempData[((y+1)*size+(x+1))*4]) / 8;
+            data[idx] = Math.floor(avg * intensity + data[idx] * (1 - intensity));
+            data[idx + 1] = Math.floor(avg * intensity + data[idx + 1] * (1 - intensity));
+            data[idx + 2] = Math.floor(avg * intensity + data[idx + 2] * (1 - intensity));
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'warp') {
+        // Warp - Raum-Zeit-Verzerrung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const cx = size / 2;
+        const cy = size / 2;
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const dx = x - cx;
+            const dy = y - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx);
+            const warp = intensity * Math.sin(dist * 0.05) * 10;
+            let sourceX = Math.floor(cx + Math.cos(angle) * (dist + warp));
+            let sourceY = Math.floor(cy + Math.sin(angle) * (dist + warp));
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'polka') {
+        // Polka - Punkte-Muster
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        const dotSize = Math.max(2, Math.floor(10 - intensity * 8));
+        const dotCount = Math.floor(intensity * 30);
+        
+        for (let dot = 0; dot < dotCount; dot++) {
+          const dotX = Math.floor(Math.random() * size);
+          const dotY = Math.floor(Math.random() * size);
+          for (let dy = -dotSize; dy <= dotSize; dy++) {
+            for (let dx = -dotSize; dx <= dotSize; dx++) {
+              if (dx * dx + dy * dy <= dotSize * dotSize) {
+                const x = dotX + dx;
+                const y = dotY + dy;
+                if (x >= 0 && x < size && y >= 0 && y < size) {
+                  const idx = (y * size + x) * 4;
+                  data[idx] = 255 - data[idx];
+                  data[idx + 1] = 255 - data[idx + 1];
+                  data[idx + 2] = 255 - data[idx + 2];
+                }
+              }
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'maze') {
+        // Maze - Labyrinth-Struktur
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        const cellSize = Math.max(4, Math.floor(20 - intensity * 15));
+        for (let y = 0; y < size; y += cellSize) {
+          for (let x = 0; x < size; x += cellSize) {
+            if ((Math.floor(x / cellSize) + Math.floor(y / cellSize)) % 2 === 0) {
+              for (let dy = 0; dy < cellSize && y + dy < size; dy++) {
+                for (let dx = 0; dx < cellSize && x + dx < size; dx++) {
+                  const idx = ((y + dy) * size + (x + dx)) * 4;
+                  data[idx] = 0;
+                  data[idx + 1] = 0;
+                  data[idx + 2] = 0;
+                }
+              }
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'laser') {
+        // Laser - Strahl-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        const beams = Math.floor(3 + intensity * 5);
+        for (let b = 0; b < beams; b++) {
+          const angle = (b / beams) * Math.PI * 2 + variation;
+          const cx = size / 2;
+          const cy = size / 2;
+          const beamWidth = Math.floor(2 + intensity * 8);
+          
+          for (let d = 0; d < Math.min(size / 2); d++) {
+            const x = Math.floor(cx + Math.cos(angle) * d);
+            const y = Math.floor(cy + Math.sin(angle) * d);
+            if (x >= 0 && x < size && y >= 0 && y < size) {
+              const idx = (y * size + x) * 4;
+              data[idx] = Math.min(255, data[idx] + 100);
+              data[idx + 1] = Math.min(255, data[idx + 1] + 150);
+              data[idx + 2] = 100;
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'blob') {
+        // Blob - Amöben-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        const blobCount = Math.floor(2 + intensity * 4);
+        for (let b = 0; b < blobCount; b++) {
+          const cx = Math.floor(Math.random() * size);
+          const cy = Math.floor(Math.random() * size);
+          const radius = Math.floor(5 + intensity * 20);
+          
+          for (let y = Math.max(0, cy - radius); y < Math.min(size, cy + radius); y++) {
+            for (let x = Math.max(0, cx - radius); x < Math.min(size, cx + radius); x++) {
+              const dist = Math.sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+              if (dist < radius) {
+                const idx = (y * size + x) * 4;
+                data[idx] = Math.max(0, data[idx] - intensity * 100);
+                data[idx + 1] = Math.max(0, data[idx + 1] - intensity * 100);
+                data[idx + 2] = Math.max(0, data[idx + 2] - intensity * 100);
+              }
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'slime') {
+        // Slime - Flüssige Deformation
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const wave = Math.sin(x * 0.02 + y * 0.02 + variation) * intensity * 15;
+            let sourceX = Math.floor(x + wave);
+            let sourceY = Math.floor(y + Math.cos(x * 0.01) * intensity * 10);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'twine') {
+        // Twine - Verdrehte Fäden
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        
+        for (let y = 0; y < size; y++) {
+          const twist = Math.sin(y * 0.05 + variation) * intensity * 20;
+          for (let x = 0; x < size; x++) {
+            let sourceX = Math.floor(x + twist);
+            sourceX = ((sourceX % size) + size) % size;
+            const srcIdx = (y * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'matrix') {
+        // Matrix - Digitaler Code-Effekt
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        
+        for (let i = 0; i < data.length; i += 4) {
+          const luminance = (data[i] + data[i+1] + data[i+2]) / 3;
+          const threshold = intensity * 200;
+          if (luminance > threshold) {
+            data[i] = 0;
+            data[i + 1] = 255;
+            data[i + 2] = 0;
+          } else {
+            data[i] = 0;
+            data[i + 1] = 0;
+            data[i + 2] = 0;
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'neonGlow') {
+        // Neon Glow - mehrfach geblurte Kopien
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = size;
+        tempCanvas.height = size;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(canvas, 0, 0);
+        ctx.clearRect(0, 0, size, size);
+        const layers = 3 + Math.floor(intensity * 8);
+        for (let i = layers; i >= 1; i--) {
+          const spread = i * (2 + intensity * 6);
+          ctx.globalAlpha = 0.05 + intensity * 0.05;
+          ctx.filter = `blur(${Math.max(1, Math.floor(spread * 0.3))}px)`;
+          ctx.drawImage(tempCanvas, -spread / 2, -spread / 2, size + spread, size + spread);
+        }
+        ctx.filter = 'none';
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.drawImage(tempCanvas, 0, 0);
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'halftone') {
+        // Halftone - Rasterpunkte
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        ctx.clearRect(0, 0, size, size);
+        const step = Math.max(3, Math.floor(12 - intensity * 8));
+        for (let y = 0; y < size; y += step) {
+          for (let x = 0; x < size; x += step) {
+            const sampleX = Math.min(size - 1, x + Math.floor(step / 2));
+            const sampleY = Math.min(size - 1, y + Math.floor(step / 2));
+            const idx = (sampleY * size + sampleX) * 4;
+            const luminance = (data[idx] + data[idx + 1] + data[idx + 2]) / 765;
+            const radius = Math.max(0, (1 - luminance) * (step / 2));
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(${data[idx]},${data[idx + 1]},${data[idx + 2]},0.9)`;
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      } else if (mode === 'gridwarp') {
+        // Gridwarp - Rasterverschiebung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const cell = Math.max(6, Math.floor(32 - intensity * 20));
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const cellX = Math.floor(x / cell);
+            const cellY = Math.floor(y / cell);
+            let sourceX = Math.floor(x + Math.sin(cellY + variation) * cell * intensity * 0.7);
+            let sourceY = Math.floor(y + Math.cos(cellX + variation * 2) * cell * intensity * 0.7);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+            data[dstIdx + 3] = tempData[srcIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'inkbleed') {
+        // Ink Bleed - vertikales Auslaufen
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const bleed = Math.max(2, Math.floor(intensity * 25));
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const idx = (y * size + x) * 4;
+            if (tempData[idx + 3] < 10) continue;
+            for (let k = 1; k < bleed; k++) {
+              const yy = Math.min(size - 1, y + k);
+              const fade = Math.max(0, 1 - k / bleed);
+              const bleedIdx = (yy * size + x) * 4;
+              data[bleedIdx] = Math.max(data[bleedIdx], tempData[idx] * fade);
+              data[bleedIdx + 1] = Math.max(data[bleedIdx + 1], tempData[idx + 1] * fade);
+              data[bleedIdx + 2] = Math.max(data[bleedIdx + 2], tempData[idx + 2] * fade);
+              data[bleedIdx + 3] = Math.max(data[bleedIdx + 3], tempData[idx + 3] * fade * 0.9);
+            }
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'moire') {
+        // Moire - Interferenzlinien
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const offset = Math.max(1, Math.floor(intensity * 10));
+        for (let y = 0; y < size; y++) {
+          const shift = Math.floor(Math.sin(y * 0.15 + variation) * offset);
+          for (let x = 0; x < size; x++) {
+            let sourceX = x + shift;
+            if (sourceX < 0) sourceX += size;
+            if (sourceX >= size) sourceX -= size;
+            const srcIdx = (y * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+            data[dstIdx + 3] = tempData[srcIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        ctx.globalAlpha = 0.1 + intensity * 0.3;
+        const spacing = Math.max(3, Math.floor(15 - intensity * 10));
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        for (let x = -size; x < size * 2; x += spacing) {
+          ctx.fillRect(x, 0, 1, size);
+        }
+        ctx.save();
+        ctx.translate(size / 2, size / 2);
+        ctx.rotate(intensity * 0.5);
+        ctx.translate(-size / 2, -size / 2);
+        for (let y = -size; y < size * 2; y += spacing) {
+          ctx.fillRect(0, y, size, 1);
+        }
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      } else if (mode === 'prism') {
+        // Prisma - RGB Versatz
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const offset = Math.max(1, Math.floor(intensity * 12));
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const baseIdx = (y * size + x) * 4;
+            const redIdx = (y * size + ((x + offset) % size)) * 4;
+            let blueX = x - offset;
+            if (blueX < 0) blueX += size;
+            const blueIdx = (y * size + blueX) * 4;
+            data[baseIdx] = tempData[redIdx];
+            data[baseIdx + 1] = tempData[baseIdx + 1];
+            data[baseIdx + 2] = tempData[blueIdx + 2];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'filmBurn') {
+        // Film Burn - warme Überstrahlung + Vignette
+        const burnGradient = ctx.createRadialGradient(size * 0.25, size * 0.25, size * 0.1, size * 0.25, size * 0.25, size * (0.6 + intensity));
+        burnGradient.addColorStop(0, `rgba(255, ${120 + intensity * 80}, 0, ${0.45 + intensity * 0.35})`);
+        burnGradient.addColorStop(0.6, 'rgba(255, 140, 0, 0.15)');
+        burnGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = 0.5 + intensity * 0.4;
+        ctx.fillStyle = burnGradient;
+        ctx.fillRect(0, 0, size, size);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'multiply';
+        const vignette = ctx.createRadialGradient(size / 2, size / 2, size * 0.2, size / 2, size / 2, size * 0.7);
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, `rgba(0,0,0,${0.6 * intensity})`);
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, size, size);
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'grainPulse') {
+        // Grain Pulse - filmisches Grundrauschen
+        const grainCanvas = document.createElement('canvas');
+        grainCanvas.width = size;
+        grainCanvas.height = size;
+        const gctx = grainCanvas.getContext('2d');
+        const grainData = gctx.createImageData(size, size);
+        for (let i = 0; i < grainData.data.length; i += 4) {
+          const noise = Math.random() * 255;
+          const pulse = 0.5 + Math.sin((i / 4) * 0.0005 + variation * Math.PI * 2) * 0.5;
+          const value = Math.max(0, Math.min(255, noise * pulse));
+          grainData.data[i] = value;
+          grainData.data[i + 1] = value;
+          grainData.data[i + 2] = value;
+          grainData.data[i + 3] = 80 + intensity * 120;
+        }
+        gctx.putImageData(grainData, 0, 0);
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.globalAlpha = 0.15 + intensity * 0.35;
+        ctx.drawImage(grainCanvas, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'vectorField') {
+        // Vector Field Warp - Strömungsfeld Verzerrung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const scale = 15 + intensity * 60;
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const angle = Math.sin((x + variation * 100) / scale) + Math.cos((y - variation * 120) / scale);
+            let sourceX = Math.floor(x + Math.sin(angle) * intensity * 25);
+            let sourceY = Math.floor(y + Math.cos(angle * 0.6) * intensity * 25);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+            data[dstIdx + 3] = tempData[srcIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'fractalMirror') {
+        // Fraktal-Spiegelung - kaleidoskopische Kachelung
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const tile = Math.max(12, Math.floor(size / (3 + intensity * 6)));
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            let tx = x % tile;
+            let ty = y % tile;
+            if (Math.floor(x / tile) % 2 === 1) tx = tile - tx;
+            if (Math.floor(y / tile) % 2 === 1) ty = tile - ty;
+            const srcIdx = (ty * size + tx) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+            data[dstIdx + 3] = tempData[srcIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'speckle') {
+        const speckleCount = Math.floor(size * size * 0.02 * (0.5 + intensity));
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < speckleCount; i++) {
+          const x = Math.random() * size;
+          const y = Math.random() * size;
+          const radius = Math.random() * 3 + 0.5;
+          const alpha = 0.2 + Math.random() * 0.4;
+          ctx.fillStyle = `rgba(${200 + Math.random() * 55},${200 + Math.random() * 55},${200 + Math.random() * 55},${alpha})`;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'inkGhost') {
+        const ghostCanvas = document.createElement('canvas');
+        ghostCanvas.width = size;
+        ghostCanvas.height = size;
+        const ghostCtx = ghostCanvas.getContext('2d');
+        ghostCtx.globalAlpha = 0.15 + intensity * 0.35;
+        const shift = 4 + intensity * 20;
+        ghostCtx.drawImage(canvas, shift, shift);
+        ghostCtx.drawImage(canvas, -shift * 0.5, -shift * 0.5);
+        ctx.globalAlpha = 0.6;
+        ctx.globalCompositeOperation = 'lighten';
+        ctx.drawImage(ghostCanvas, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'flowLines') {
+        const lines = Math.floor(20 + intensity * 60);
+        ctx.globalAlpha = 0.1 + intensity * 0.2;
+        ctx.globalCompositeOperation = 'overlay';
+        for (let i = 0; i < lines; i++) {
+          const y = Math.random() * size;
+          const thickness = Math.random() * 2 + 0.5;
+          ctx.fillStyle = `rgba(${120 + Math.random() * 100},${120 + Math.random() * 100},${255},0.3)`;
+          ctx.fillRect(0, y, size, thickness);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'chromaticNova') {
+        const gradient = ctx.createRadialGradient(size / 2, size / 2, size * 0.1, size / 2, size / 2, size * 0.7);
+        gradient.addColorStop(0, `rgba(255, 80, 120, ${0.2 + intensity * 0.5})`);
+        gradient.addColorStop(0.5, `rgba(80, 120, 255, ${0.15 + intensity * 0.3})`);
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'smokeScreen') {
+        const smokeCanvas = document.createElement('canvas');
+        smokeCanvas.width = size;
+        smokeCanvas.height = size;
+        const sctx = smokeCanvas.getContext('2d');
+        sctx.drawImage(canvas, 0, 0);
+        sctx.globalAlpha = 0.35 + intensity * 0.4;
+        sctx.filter = `blur(${4 + intensity * 10}px)`;
+        sctx.drawImage(canvas, Math.sin(variation * Math.PI * 2) * 10, Math.cos(variation * Math.PI) * 10);
+        ctx.globalAlpha = 0.6;
+        ctx.drawImage(sctx.canvas, 0, 0);
+        ctx.globalAlpha = 1;
+      } else if (mode === 'solarFlare') {
+        const burst = ctx.createRadialGradient(size / 2, size / 2, size * 0.05, size / 2, size / 2, size * 0.8);
+        burst.addColorStop(0, `rgba(255, ${180 + intensity * 60}, 0, ${0.4 + intensity * 0.5})`);
+        burst.addColorStop(0.4, `rgba(255, 255, 255, ${0.2 + intensity * 0.3})`);
+        burst.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = burst;
+        ctx.fillRect(0, 0, size, size);
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'liquidMetal') {
+        const imageData = ctx.getImageData(0, 0, size, size);
+        const data = imageData.data;
+        const tempData = new Uint8ClampedArray(data);
+        const distort = 10 + intensity * 25;
+        for (let y = 0; y < size; y++) {
+          for (let x = 0; x < size; x++) {
+            const wave = Math.sin((x + y) * 0.03 + variation * 6) * distort;
+            let sourceX = Math.floor(x + wave);
+            let sourceY = Math.floor(y + Math.cos(x * 0.02) * distort * 0.3);
+            sourceX = ((sourceX % size) + size) % size;
+            sourceY = ((sourceY % size) + size) % size;
+            const srcIdx = (sourceY * size + sourceX) * 4;
+            const dstIdx = (y * size + x) * 4;
+            data[dstIdx] = tempData[srcIdx];
+            data[dstIdx + 1] = tempData[srcIdx + 1];
+            data[dstIdx + 2] = tempData[srcIdx + 2];
+            data[dstIdx + 3] = tempData[srcIdx + 3];
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+      } else if (mode === 'pixelDrift') {
+        const block = Math.max(2, Math.floor(8 - intensity * 6));
+        const columns = Math.floor(size / block);
+        const temp = ctx.getImageData(0, 0, size, size);
+        for (let col = 0; col < columns; col++) {
+          const offset = Math.floor((Math.random() - 0.5) * block * 4 * intensity);
+          ctx.putImageData(temp, offset, 0, col * block, 0, block, size);
+        }
+      } else if (mode === 'glimmer') {
+        ctx.globalCompositeOperation = 'screen';
+        const starCount = Math.floor(20 + intensity * 80);
+        for (let i = 0; i < starCount; i++) {
+          const x = Math.random() * size;
+          const y = Math.random() * size;
+          const len = Math.random() * 8 + 2;
+          const alpha = 0.15 + Math.random() * 0.3;
+          ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+          ctx.lineWidth = 0.6;
+          ctx.beginPath();
+          ctx.moveTo(x - len, y);
+          ctx.lineTo(x + len, y);
+          ctx.moveTo(x, y - len);
+          ctx.lineTo(x, y + len);
+          ctx.stroke();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+      } else if (mode === 'auraPulse') {
+        const copies = 3 + Math.floor(intensity * 6);
+        for (let i = 0; i < copies; i++) {
+          const scale = 1 + i * 0.05;
+          const alpha = 0.15 * (1 - i / copies);
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(canvas, (size - size * scale) / 2, (size - size * scale) / 2, size * scale, size * scale);
+        }
+        ctx.globalAlpha = 1;
+      }
+
+      // Keine zusätzlichen Filter - Effekte sind genug!
+    }
+
+    // Wendet P5-ähnliche Effekte auf Hintergrund-Bilder an (SYNCHRON, mit Cache)
+    function applyEffectToBackgroundImage(img, mode, intensity) {
+      if (mode === 'none' || !mode || intensity === 0) return img;
+      
+      // Cache-Key erstellen
+      const cacheKey = `${img.src}_${mode}_${intensity}`;
+      if (bgEffectCache[cacheKey]) {
+        return bgEffectCache[cacheKey];
+      }
+      
+      // Schnelle Effektberechnung direkt im Canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      // Wende den Effekt synchron an
+      applyGenerativeFontEffects(ctx, canvas, mode, intensity / 100, canvas.width, Math.random());
+      
+      // Konvertiere zu Data URL - NICHT zu Image (spart Laden)
+      const dataUrl = canvas.toDataURL('image/png');
+      
+      // Cache das Result
+      const modifiedImg = new Image();
+      modifiedImg.src = dataUrl;
+      bgEffectCache[cacheKey] = modifiedImg;
+      
+      return modifiedImg;
+    }
+
+    function applyTintToBackgroundImage(img, color, strength = 0) {
+      if (!img || !color || strength <= 0) return img;
+      const normalized = Math.max(0, Math.min(1, strength));
+      const cacheKey = `${img.src}_tint_${color}_${normalized.toFixed(3)}`;
+      if (bgEffectCache[cacheKey]) {
+        return bgEffectCache[cacheKey];
+      }
+      const width = img.naturalWidth || img.width;
+      const height = img.naturalHeight || img.height;
+      if (!width || !height) return img;
+      const baseCanvas = document.createElement('canvas');
+      baseCanvas.width = width;
+      baseCanvas.height = height;
+      const baseCtx = baseCanvas.getContext('2d');
+      baseCtx.drawImage(img, 0, 0, width, height);
+      const tintCanvas = document.createElement('canvas');
+      tintCanvas.width = width;
+      tintCanvas.height = height;
+      const tintCtxLocal = tintCanvas.getContext('2d');
+      tintCtxLocal.drawImage(img, 0, 0, width, height);
+      tintCtxLocal.globalCompositeOperation = 'color';
+      tintCtxLocal.fillStyle = color;
+      tintCtxLocal.fillRect(0, 0, width, height);
+      tintCtxLocal.globalCompositeOperation = 'destination-in';
+      tintCtxLocal.drawImage(img, 0, 0, width, height);
+      tintCtxLocal.globalCompositeOperation = 'source-over';
+      baseCtx.globalAlpha = normalized;
+      baseCtx.drawImage(tintCanvas, 0, 0);
+      baseCtx.globalAlpha = 1;
+      const tintedImg = new Image();
+      tintedImg.src = baseCanvas.toDataURL('image/png');
+      bgEffectCache[cacheKey] = tintedImg;
+      return tintedImg;
+    }
+
+    function prepareBackgroundImage(img, config) {
+      let processed = img;
+      const hasEffect = config.bgEffectEnabled && config.bgEffectMode && config.bgEffectMode !== 'none' && config.bgEffectIntensity > 0;
+      const hasTint = config.bgTintColor && config.bgTintStrength > 0;
+      if (!hasEffect && !hasTint) return processed;
+      if (hasEffect) {
+        processed = applyEffectToBackgroundImage(processed, config.bgEffectMode, config.bgEffectIntensity);
+      }
+      if (hasTint) {
+        processed = applyTintToBackgroundImage(processed, config.bgTintColor, config.bgTintStrength);
+      }
+      return processed;
+    }
+
+    // Liest aktuelle Einstellungen aus dem UI
+    function getCurrentSettings() {
+      return {
+        letterCount: parseInt(document.getElementById('letterCount').value, 10),
+        scale: parseInt(document.getElementById('scale').value, 10),
+        maxRotation: parseInt(document.getElementById('maxRotation').value, 10),
+        overlapDensity: parseInt(document.getElementById('overlapDensity').value, 10),
+        layoutMode: document.getElementById('layoutMode').value,
+        letterLayoutChar: (() => {
+          const input = document.getElementById('letterLayoutChar');
+          const raw = input && input.value ? input.value.trim() : '';
+          return raw ? raw.charAt(0) : 'A';
+        })(),
+        restrictToWord: document.getElementById('restrictLetters').checked,
+        word: sanitizeWordInput(document.getElementById('posterText').value || ''),
+        bgImageCount: parseInt(document.getElementById('bgImageCount') ? document.getElementById('bgImageCount').value : 0, 10),
+        bgForegroundCount: parseInt(document.getElementById('bgForegroundCount') ? document.getElementById('bgForegroundCount').value : 0, 10),
+        bgImageOpacity: parseInt(document.getElementById('bgImageOpacity') ? document.getElementById('bgImageOpacity').value : 90, 10) / 100,
+        bgImageScale: parseInt(document.getElementById('bgImageScale') ? document.getElementById('bgImageScale').value : 100, 10) / 100,
+        bgTintColor: (() => {
+          const el = document.getElementById('bgTintColor');
+          return el && el.value ? el.value : null;
+        })(),
+        bgTintStrength: (() => {
+          const slider = document.getElementById('bgTintStrength');
+          const raw = slider ? parseInt(slider.value, 10) : 0;
+          return Math.max(0, Math.min(1, (isNaN(raw) ? 0 : raw) / 100));
+        })(),
+        backgroundColor: (() => {
+          const el = document.getElementById('posterBgColor');
+          const raw = el ? el.value : '#ffffff';
+          return raw && raw.trim() ? raw.trim() : '#ffffff';
+        })(),
+        letterColor: (() => {
+          const input = document.getElementById('letterColor');
+          if (input && input.value) {
+            return input.value;
+          }
+          return '#000000';
+        })(),
+        enableP5Effects: document.getElementById('enableP5Effects') ? document.getElementById('enableP5Effects').checked : false,
+        p5EffectMode: document.getElementById('p5EffectMode') ? document.getElementById('p5EffectMode').value : 'distortion',
+        p5Intensity: parseInt(document.getElementById('p5Intensity') ? document.getElementById('p5Intensity').value : 50, 10),
+        bgEffectEnabled: document.getElementById('bgEffectToggle') ? document.getElementById('bgEffectToggle').checked : false,
+        bgEffectMode: document.getElementById('bgEffectMode') ? document.getElementById('bgEffectMode').value : 'none',
+        bgEffectIntensity: parseInt(document.getElementById('bgEffectIntensity') ? document.getElementById('bgEffectIntensity').value : 30, 10),
+        bgFullscreen: document.getElementById('bgFullscreenToggle') ? document.getElementById('bgFullscreenToggle').checked : false
+      };
+    }
+
+    // Erstellt ein IMG-Element für einen Buchstaben
+    function createLetterElement(letter, config, baseSize) {
+      const variations = letterImages[letter];
+      if (!variations || !variations.length) return null;
+      const variation = variations[Math.floor(Math.random() * variations.length)];
+      const img = document.createElement('img');
+      const colorSrc = getTintedSource(variation, config) || variation.src;
+      img.src = colorSrc;
+      img.alt = letter;
+      img.className = 'letter';
+      img.draggable = false;
+      const randomScale = 0.85 + Math.random() * 0.3; // 85% bis 115%
+      const widthPx = baseSize * (config.scale / 100) * randomScale;
+      const ratio = variation && variation.width && variation.height ? (variation.height / variation.width) : 1;
+      const heightPx = widthPx * ratio;
+      img.style.width = `${widthPx}px`;
+      img.style.height = `${heightPx}px`;
+      img.style.opacity = '1';
+      return {
+        element: img,
+        width: widthPx,
+        height: heightPx,
+        src: colorSrc
+      };
+    }
+
+    // Positioniert ein Letter-Element je nach Layout-Modus
+    function placeLetterElement(el, index, config, bounds, positions) {
+      const { width, height } = bounds;
+      const minDistance = computeMinDistance(config.overlapDensity);
+      let x = width / 2;
+      let y = height / 2;
+      let rotation = 0;
+
+      if (config.layoutMode === 'grid') {
+        const cols = Math.ceil(Math.sqrt(config.letterCount));
+        const cellW = width / cols;
+        const cellH = height / Math.ceil(config.letterCount / cols);
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        x = (col + 0.5) * cellW;
+        y = (row + 0.5) * cellH;
+        rotation = (Math.random() - 0.5) * Math.min(config.maxRotation, 20);
+      } else if (config.layoutMode === 'circle') {
+        const angle = (index / config.letterCount) * Math.PI * 2;
+        const jitter = (Math.random() - 0.5) * 0.25;
+        const radius = Math.min(width, height) * 0.35 + (Math.random() - 0.5) * 20;
+        x = width / 2 + Math.cos(angle + jitter) * radius;
+        y = height / 2 + Math.sin(angle + jitter) * radius;
+        rotation = (angle * 180 / Math.PI) + (Math.random() - 0.5) * config.maxRotation * 0.4;
+      } else if (config.layoutMode === 'spiral') {
+        const t = index / Math.max(1, config.letterCount);
+        const revolutions = 4;
+        const angle = t * Math.PI * 2 * revolutions;
+        const maxRadius = Math.min(width, height) * 0.45;
+        const radius = 20 + t * maxRadius;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = (angle * 180 / Math.PI) + (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'diagonal') {
+        const padding = 40;
+        const frac = config.letterCount > 1 ? index / (config.letterCount - 1) : 0.5;
+        x = clamp(padding + frac * (width - padding * 2), 20, width - 20);
+        y = clamp(padding + frac * (height - padding * 2), 20, height - 20);
+        x += (Math.random() - 0.5) * 30;
+        y += (Math.random() - 0.5) * 30;
+        rotation = 45 + (Math.random() - 0.5) * 25;
+      } else if (config.layoutMode === 'wave') {
+        const spacing = width / Math.max(1, config.letterCount);
+        const amplitude = height * 0.25;
+        const waveTurns = 3;
+        const angle = (index / Math.max(1, config.letterCount)) * Math.PI * 2 * waveTurns;
+        x = clamp(spacing * (index + 0.5), 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * amplitude, 20, height - 20);
+        rotation = Math.sin(angle) * 25 + (Math.random() - 0.5) * 10;
+      } else if (config.layoutMode === 'line') {
+        const spacing = width / Math.max(1, config.letterCount);
+        x = clamp(spacing * (index + 0.5), 20, width - 20);
+        y = clamp(height / 2 + (Math.random() - 0.5) * height * 0.15, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'letterShape') {
+        const maskPoints = (config._letterLayoutPoints && config._letterLayoutPoints.length)
+          ? config._letterLayoutPoints
+          : sampleLetterShapePositions(config.letterLayoutChar, config.letterCount);
+        if (maskPoints.length) {
+          const point = maskPoints[index % maskPoints.length];
+          const marginX = width * 0.08;
+          const marginY = height * 0.08;
+          x = clamp(marginX + point.x * (width - marginX * 2), 20, width - 20);
+          y = clamp(marginY + point.y * (height - marginY * 2), 20, height - 20);
+        } else {
+          x = width / 2;
+          y = height / 2;
+        }
+        rotation = (Math.random() - 0.5) * Math.min(35, config.maxRotation || 45);
+      } else if (config.layoutMode === 'zigzagColumns') {
+        const cols = Math.max(2, Math.round(Math.sqrt(config.letterCount)));
+        const rows = Math.max(1, Math.ceil(config.letterCount / cols));
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const colWidth = width / cols;
+        const direction = col % 2 === 0 ? 1 : -1;
+        const rowProgress = rows === 1 ? 0.5 : row / (rows - 1);
+        const normalized = direction > 0 ? rowProgress : 1 - rowProgress;
+        x = clamp(colWidth * (col + 0.5), 20, width - 20);
+        y = clamp(20 + normalized * (height - 40) + (Math.random() - 0.5) * 15, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 25;
+      } else if (config.layoutMode === 'verticalStripes') {
+        const stripes = Math.max(3, Math.min(8, Math.ceil(config.letterCount / 8)));
+        const stripeIndex = index % stripes;
+        const stripeWidth = width / stripes;
+        x = clamp(stripeWidth * (stripeIndex + 0.5) + (Math.random() - 0.5) * stripeWidth * 0.3, 20, width - 20);
+        y = clamp(20 + Math.random() * (height - 40), 20, height - 20);
+        rotation = (Math.random() - 0.5) * config.maxRotation * 0.4;
+      } else if (config.layoutMode === 'concentricCircles') {
+        const rings = Math.max(2, Math.ceil(Math.sqrt(config.letterCount / 4)));
+        const ringIndex = Math.floor(index * rings / config.letterCount);
+        const ringRadius = (ringIndex + 1) / rings * Math.min(width, height) * 0.4;
+        const lettersInRing = Math.ceil(config.letterCount / rings);
+        const posInRing = index % lettersInRing;
+        const angle = (posInRing / lettersInRing) * Math.PI * 2 + (ringIndex * 0.5);
+        x = clamp(width / 2 + Math.cos(angle) * ringRadius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * ringRadius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'radialBurst') {
+        const angle = (index / Math.max(1, config.letterCount)) * Math.PI * 2;
+        const distance = 30 + (index / config.letterCount) * Math.min(width, height) * 0.45;
+        x = clamp(width / 2 + Math.cos(angle) * distance, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * distance, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 30;
+      } else if (config.layoutMode === 'perlinNoise') {
+        // Pseudo-Perlin für organische Platzierung
+        const noiseScale = 0.1;
+        const nx = Math.sin(index * 12.9898) * 43758.5453;
+        const ny = Math.sin((index + 1) * 78.233) * 43758.5453;
+        const nz = Math.sin((index + 2) * 45.164) * 43758.5453;
+        const fracX = (nx - Math.floor(nx));
+        const fracY = (ny - Math.floor(ny));
+        x = clamp(fracX * width, 20, width - 20);
+        y = clamp(fracY * height, 20, height - 20);
+        rotation = (Math.sin(nz) + 1) * 90 + (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'fibonacciSpiral') {
+        const phi = (1 + Math.sqrt(5)) / 2;
+        const angle = index * (2 * Math.PI / (phi * phi));
+        const radius = 5 + Math.sqrt(index) * 3 + (index / config.letterCount) * Math.min(width, height) * 0.3;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'hexagonalGrid') {
+        const cols = Math.ceil(Math.sqrt(config.letterCount * 1.15));
+        const cellW = width / cols;
+        const cellH = height / Math.ceil(config.letterCount / cols) * 0.866;
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        x = col * cellW + (row % 2) * cellW * 0.5 + cellW * 0.5;
+        y = row * cellH + cellH * 0.5;
+        x = clamp(x, 20, width - 20);
+        y = clamp(y, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 25;
+      } else if (config.layoutMode === 'spiralGrid') {
+        const cols = Math.max(2, Math.ceil(Math.sqrt(config.letterCount)));
+        const rows = Math.max(1, Math.ceil(config.letterCount / cols));
+        const rowIdx = Math.floor(index / cols);
+        const colIdx = index % cols;
+        const cellW = width / cols;
+        const cellH = height / rows;
+        const cellX = colIdx * cellW + cellW / 2;
+        const cellY = rowIdx * cellH + cellH / 2;
+        const dx = cellX - width / 2;
+        const dy = cellY - height / 2;
+        const swirl = (rowIdx - rows / 2) * 0.3 + (colIdx - cols / 2) * 0.3;
+        x = clamp(cellX + Math.cos(swirl) * 12, 20, width - 20);
+        y = clamp(cellY + Math.sin(swirl) * 12, 20, height - 20);
+        rotation = (Math.atan2(dy, dx) * 180 / Math.PI) + swirl * 45;
+      } else if (config.layoutMode === 'sunburstGrid') {
+        const rays = Math.max(6, Math.ceil(Math.sqrt(config.letterCount)));
+        const rayIndex = index % rays;
+        const stepsPerRay = Math.max(1, Math.floor(config.letterCount / rays));
+        const radiusStep = Math.min(width, height) * 0.45 / Math.max(1, stepsPerRay);
+        const stepIndex = Math.floor(index / rays);
+        const radius = 40 + radiusStep * stepIndex + Math.random() * 10;
+        const angle = (rayIndex / rays) * Math.PI * 2 + (stepIndex * 0.08);
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'triangularMatrix') {
+        const cols = Math.max(2, Math.ceil(Math.sqrt(config.letterCount * 2)));
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const offset = (row % 2) * 0.5;
+        const cellW = width / cols;
+        const cellH = cellW * Math.sin(Math.PI / 3);
+        x = clamp((col + offset + 0.5) * cellW, 20, width - 20);
+        y = clamp(40 + row * cellH * 0.85, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'spiralArms') {
+        const arms = Math.max(3, Math.min(8, Math.floor(config.letterCount / 15) + 3));
+        const armIndex = index % arms;
+        const revolutions = 4;
+        const t = index / Math.max(1, config.letterCount);
+        const angle = (armIndex / arms) * Math.PI * 2 + t * Math.PI * revolutions;
+        const radius = 20 + t * Math.min(width, height) * 0.5;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 25;
+      } else if (config.layoutMode === 'waveColumns') {
+        const cols = Math.max(3, Math.ceil(Math.sqrt(config.letterCount)));
+        const col = index % cols;
+        const rows = Math.ceil(config.letterCount / cols);
+        const colWidth = width / cols;
+        const baseX = colWidth * (col + 0.5);
+        const wave = Math.sin(col * 0.8 + index * 0.15) * height * 0.15;
+        const row = Math.floor(index / cols);
+        const rowSpacing = height / Math.max(1, rows);
+        const baseY = clamp(rowSpacing * (row + 0.5), 20, height - 20);
+        x = clamp(baseX, 20, width - 20);
+        y = clamp(baseY + wave, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 18;
+      } else if (config.layoutMode === 'cascadeColumns') {
+        const stacks = Math.max(3, Math.ceil(Math.sqrt(config.letterCount / 1.5)));
+        const stackIndex = index % stacks;
+        const itemsPerStack = Math.ceil(config.letterCount / stacks);
+        const stackX = (stackIndex + 0.5) * (width / stacks);
+        const drop = (index / config.letterCount) * height * 0.2;
+        const stepY = (height - 80) / Math.max(1, itemsPerStack);
+        const stackY = 40 + (Math.floor(index / stacks) * stepY) + drop;
+        x = clamp(stackX + (Math.random() - 0.5) * 30, 20, width - 20);
+        y = clamp(stackY, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 12;
+      } else if (config.layoutMode === 'orbitalSpiral') {
+        const turns = 5;
+        const t = index / Math.max(1, config.letterCount - 1);
+        const angle = t * Math.PI * 2 * turns;
+        const radius = 30 + t * Math.min(width, height) * 0.45;
+        const wobble = Math.sin(index * 0.3) * 18;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + wobble;
+      } else if (config.layoutMode === 'drapeCurtain') {
+        const folds = Math.max(3, Math.ceil(Math.sqrt(config.letterCount)));
+        const foldIdx = index % folds;
+        const depth = Math.floor(index / folds);
+        const foldWidth = width / folds;
+        const baseX = foldWidth * (foldIdx + 0.5);
+        const sway = Math.sin(depth * 0.7 + foldIdx) * foldWidth * 0.25;
+        x = clamp(baseX + sway, 20, width - 20);
+        y = clamp(40 + depth * 40 + Math.cos(foldIdx * 0.6) * 15, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 10;
+      } else if (config.layoutMode === 'helixStack') {
+        const turns = 3;
+        const t = index / Math.max(1, config.letterCount - 1);
+        const angle = t * Math.PI * 2 * turns;
+        const radius = width * 0.25;
+        const centerX = width / 2;
+        const columnOffset = Math.sin(angle * 0.5) * radius * 0.4;
+        x = clamp(centerX + Math.cos(angle) * radius + columnOffset, 20, width - 20);
+        y = clamp(60 + t * (height - 120), 20, height - 20);
+        rotation = (Math.sin(angle) * 40) + (Math.random() - 0.5) * 12;
+      } else if (config.layoutMode === 'burstClusters') {
+        const clusterCount = Math.max(3, Math.ceil(Math.sqrt(config.letterCount / 2)));
+        const clusterIdx = index % clusterCount;
+        const clusterCol = clusterIdx % Math.ceil(Math.sqrt(clusterCount));
+        const clusterRow = Math.floor(clusterIdx / Math.ceil(Math.sqrt(clusterCount)));
+        const clusterWidth = width / Math.ceil(Math.sqrt(clusterCount));
+        const clusterHeight = height / Math.ceil(Math.sqrt(clusterCount));
+        const clusterCenterX = clusterCol * clusterWidth + clusterWidth / 2;
+        const clusterCenterY = clusterRow * clusterHeight + clusterHeight / 2;
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 10 + Math.random() * Math.min(clusterWidth, clusterHeight) * 0.35;
+        x = clamp(clusterCenterX + Math.cos(angle) * distance, 20, width - 20);
+        y = clamp(clusterCenterY + Math.sin(angle) * distance, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 25;
+      } else if (config.layoutMode === 'rippleBands') {
+        const bands = Math.max(4, Math.ceil(Math.sqrt(config.letterCount / 2)));
+        const bandIndex = Math.floor(index / Math.max(1, Math.ceil(config.letterCount / bands)));
+        const bandHeight = height / bands;
+        const baseY = bandHeight * (bandIndex + 0.5);
+        const t = index / Math.max(1, config.letterCount);
+        const wave = Math.sin(t * Math.PI * 4 + bandIndex) * bandHeight * 0.3;
+        x = clamp(40 + (index % Math.ceil(config.letterCount / bands)) * (width / Math.ceil(config.letterCount / bands)), 20, width - 20);
+        y = clamp(baseY + wave, 20, height - 20);
+        rotation = Math.sin(t * Math.PI * 8) * 20;
+      } else if (config.layoutMode === 'cityGrid') {
+        const cols = Math.max(3, Math.ceil(Math.sqrt(config.letterCount * 1.3)));
+        const rows = Math.max(3, Math.ceil(config.letterCount / cols));
+        const gap = 12;
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        const cellW = (width - gap * (cols - 1)) / cols;
+        const cellH = (height - gap * (rows - 1)) / rows;
+        x = clamp(col * (cellW + gap) + cellW / 2 + (Math.random() - 0.5) * cellW * 0.2, 20, width - 20);
+        y = clamp(row * (cellH + gap) + cellH / 2 + (Math.random() - 0.5) * cellH * 0.2, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 10;
+      } else if (config.layoutMode === 'splitChevron') {
+        const half = Math.floor(config.letterCount / 2);
+        const left = index < half;
+        const ratio = left ? index / Math.max(1, half - 1) : (index - half) / Math.max(1, config.letterCount - half - 1);
+        const xBase = left ? 40 + ratio * (width / 2 - 60) : width / 2 + ratio * (width / 2 - 60);
+        const yBase = 60 + ratio * (height - 120);
+        const offset = left ? ratio * 40 : -ratio * 40;
+        x = clamp(xBase + offset, 20, width - 20);
+        y = clamp(yBase, 20, height - 20);
+        rotation = left ? -20 + ratio * 30 : 20 - ratio * 30;
+      } else if (config.layoutMode === 'spiralBloom') {
+        const petals = Math.max(4, Math.ceil(Math.sqrt(config.letterCount / 3)));
+        const petalIndex = index % petals;
+        const t = index / Math.max(1, config.letterCount - 1);
+        const radius = 25 + t * Math.min(width, height) * 0.45;
+        const offset = Math.sin(t * Math.PI * 4) * radius * 0.2;
+        const angle = (petalIndex / petals) * Math.PI * 2 + t * Math.PI * 3;
+        x = clamp(width / 2 + Math.cos(angle) * (radius + offset), 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * (radius + offset), 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'radialGrid') {
+        const rings = Math.max(3, Math.ceil(Math.sqrt(config.letterCount / 2)));
+        const ringIndex = Math.floor(index / rings);
+        const sector = index % rings;
+        const radius = 30 + (ringIndex % rings) * (Math.min(width, height) * 0.35 / rings);
+        const angle = (sector / rings) * Math.PI * 2 + (ringIndex * 0.15);
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'fracturedLines') {
+        const bands = Math.max(4, Math.ceil(Math.sqrt(config.letterCount)));
+        const bandIndex = index % bands;
+        const segmentLength = width / bands;
+        const baseX = bandIndex * segmentLength + segmentLength / 2;
+        const baseY = 40 + Math.random() * (height - 80);
+        const jitter = (Math.random() - 0.5) * segmentLength * 0.6;
+        x = clamp(baseX + jitter, 20, width - 20);
+        y = clamp(baseY + Math.sin(bandIndex * 1.2 + index * 0.4) * 40, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 40;
+      } else if (config.layoutMode === 'orbitRibbon') {
+        const ribbons = 2;
+        const ribbonIndex = index % ribbons;
+        const t = index / Math.max(1, config.letterCount - 1);
+        const baseRadius = 40 + t * Math.min(width, height) * 0.45;
+        const angle = t * Math.PI * 4 + ribbonIndex * Math.PI;
+        const ribbonOffset = ribbonIndex === 0 ? 18 : -18;
+        x = clamp(width / 2 + Math.cos(angle) * baseRadius + ribbonOffset, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * baseRadius + ribbonOffset * 0.5, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (ribbonIndex === 0 ? 15 : -15);
+      } else if (config.layoutMode === 'chaoticSpirals') {
+        const clusters = Math.max(3, Math.ceil(Math.sqrt(config.letterCount / 3)));
+        const clusterIndex = index % clusters;
+        const centerX = width / 2 + Math.sin(clusterIndex) * width * 0.2;
+        const centerY = height / 2 + Math.cos(clusterIndex) * height * 0.2;
+        const t = index / Math.max(1, config.letterCount);
+        const angle = t * Math.PI * 6 + clusterIndex;
+        const radius = 10 + (index % 30) * 6;
+        x = clamp(centerX + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(centerY + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 35;
+      } else if (config.layoutMode === 'crossPattern') {
+        const half = Math.ceil(config.letterCount / 2);
+        let px, py;
+        if (index < half) {
+          // Horizontal line
+          const frac = index / half;
+          px = 20 + frac * (width - 40);
+          py = height / 2;
+        } else {
+          // Vertical line
+          const frac = (index - half) / (config.letterCount - half);
+          px = width / 2;
+          py = 20 + frac * (height - 40);
+        }
+        x = clamp(px + (Math.random() - 0.5) * 40, 20, width - 20);
+        y = clamp(py + (Math.random() - 0.5) * 40, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'sineWaveArray') {
+        const spacing = width / Math.max(1, config.letterCount);
+        const amplitude = height * 0.3;
+        const frequency = 2;
+        x = clamp(spacing * (index + 0.5), 20, width - 20);
+        y = clamp(height / 2 + Math.sin((index / config.letterCount) * Math.PI * 2 * frequency) * amplitude, 20, height - 20);
+        rotation = Math.sin((index / config.letterCount) * Math.PI * 2 * frequency) * 30 + (Math.random() - 0.5) * 5;
+      } else if (config.layoutMode === 'randomCluster') {
+        const clusterCount = Math.max(2, Math.floor(Math.sqrt(config.letterCount / 3)));
+        const clusterIndex = index % clusterCount;
+        const clusterCenterX = (clusterIndex % Math.ceil(Math.sqrt(clusterCount))) * (width / Math.ceil(Math.sqrt(clusterCount))) + width / (clusterCount * 2);
+        const clusterCenterY = Math.floor(clusterIndex / Math.ceil(Math.sqrt(clusterCount))) * (height / Math.ceil(Math.sqrt(clusterCount))) + height / (clusterCount * 2);
+        x = clamp(clusterCenterX + (Math.random() - 0.5) * 100, 20, width - 20);
+        y = clamp(clusterCenterY + (Math.random() - 0.5) * 100, 20, height - 20);
+        rotation = (Math.random() - 0.5) * config.maxRotation;
+      } else if (config.layoutMode === 'gravityField') {
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const angle = (index / Math.max(1, config.letterCount)) * Math.PI * 2;
+        const jitter = Math.sin(index * 0.5) * 0.3;
+        const distance = 30 + Math.abs(Math.sin(index * 0.2)) * Math.min(width, height) * 0.4;
+        x = clamp(centerX + Math.cos(angle + jitter) * distance, 20, width - 20);
+        y = clamp(centerY + Math.sin(angle + jitter) * distance, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 25;
+      } else if (config.layoutMode === 'orbitPaths') {
+        const orbitCount = Math.max(2, Math.ceil(config.letterCount / 6));
+        const orbitIndex = Math.floor(index / (config.letterCount / orbitCount));
+        const posInOrbit = index % Math.ceil(config.letterCount / orbitCount);
+        const orbitRadius = 50 + orbitIndex * 40;
+        const angle = (posInOrbit / Math.ceil(config.letterCount / orbitCount)) * Math.PI * 2;
+        x = clamp(width / 2 + Math.cos(angle) * orbitRadius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * orbitRadius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'scatteredRandom') {
+        let attempts = 0;
+        const maxAttempts = 50;
+        do {
+          x = Math.random() * (width - 80) + 40;
+          y = Math.random() * (height - 80) + 40;
+          attempts++;
+        } while (!isFarEnough(x, y, positions, minDistance * 0.5) && attempts < maxAttempts);
+        rotation = (Math.random() * 2 - 1) * config.maxRotation;
+      } else if (config.layoutMode === 'edgeAlignment') {
+        const edges = ['top', 'right', 'bottom', 'left'];
+        const edgeIndex = index % 4;
+        const posInEdge = Math.floor(index / 4);
+        const edgeSegment = Math.max(1, Math.ceil(config.letterCount / 4));
+        const progress = posInEdge / edgeSegment;
+        
+        if (edgeIndex === 0) { // top
+          x = 20 + progress * (width - 40);
+          y = 30 + (Math.random() - 0.5) * 20;
+        } else if (edgeIndex === 1) { // right
+          x = width - 30 - (Math.random() - 0.5) * 20;
+          y = 20 + progress * (height - 40);
+        } else if (edgeIndex === 2) { // bottom
+          x = width - 20 - progress * (width - 40);
+          y = height - 30 - (Math.random() - 0.5) * 20;
+        } else { // left
+          x = 30 + (Math.random() - 0.5) * 20;
+          y = height - 20 - progress * (height - 40);
+        }
+        x = clamp(x, 20, width - 20);
+        y = clamp(y, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 30;
+      } else if (config.layoutMode === 'coronaRays') {
+        const rays = Math.max(4, Math.ceil(Math.sqrt(config.letterCount)));
+        const anglePerRay = Math.PI * 2 / rays;
+        const rayIndex = Math.floor(index / (config.letterCount / rays));
+        const posInRay = index % Math.ceil(config.letterCount / rays);
+        const baseAngle = rayIndex * anglePerRay;
+        const distance = 40 + posInRay * 50;
+        x = clamp(width / 2 + Math.cos(baseAngle) * distance, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(baseAngle) * distance, 20, height - 20);
+        rotation = baseAngle * 180 / Math.PI + (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'mandala') {
+        // Mandala - konzentrische Muster
+        const rings = Math.max(3, Math.ceil(Math.sqrt(config.letterCount / 5)));
+        const ringIndex = Math.floor(index * rings / config.letterCount);
+        const lettersPerRing = Math.ceil(config.letterCount / rings);
+        const posInRing = index % lettersPerRing;
+        const angle = (posInRing / lettersPerRing) * Math.PI * 2;
+        const radius = 30 + ringIndex * 60;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + ringIndex * 30;
+      } else if (config.layoutMode === 'dandelion') {
+        // Dandelion - Löwenzahn-Struktur
+        const angle = (index / config.letterCount) * Math.PI * 2 + variation * 0.5;
+        const distance = 10 + Math.sqrt(index / config.letterCount) * Math.min(width, height) * 0.45;
+        x = clamp(width / 2 + Math.cos(angle) * distance, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * distance, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 35;
+      } else if (config.layoutMode === 'galaxy') {
+        // Galaxy - Galaxie-Spiral
+        const t = index / Math.max(1, config.letterCount);
+        const spiralArms = 3;
+        const angle = t * Math.PI * 2 * spiralArms + (Math.random() - 0.5) * 0.3;
+        const radius = Math.sqrt(t) * Math.min(width, height) * 0.4;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI;
+      } else if (config.layoutMode === 'staircase') {
+        // Staircase - Treppen-Muster
+        const cols = Math.ceil(Math.sqrt(config.letterCount * 0.7));
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        x = clamp(50 + col * (width - 100) / cols, 20, width - 20);
+        y = clamp(50 + row * (height - 100) / cols + col * 8, 20, height - 20);
+        rotation = (row * 3 + col * 2) + (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'honeycomb') {
+        // Honeycomb - Bienenwaben
+        const rows = Math.ceil(Math.sqrt(config.letterCount / 1.5));
+        const row = Math.floor(index / Math.ceil(config.letterCount / rows));
+        const col = index % Math.ceil(config.letterCount / rows);
+        const offsetX = (row % 2) * 20;
+        x = clamp(40 + col * 35 + offsetX, 20, width - 20);
+        y = clamp(40 + row * 30, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'flower') {
+        // Flower - Blüten-Form
+        const petals = Math.max(3, Math.ceil(Math.sqrt(config.letterCount / 3)));
+        const petalIndex = Math.floor(index / (config.letterCount / petals));
+        const posInPetal = index % Math.ceil(config.letterCount / petals);
+        const petalAngle = (petalIndex / petals) * Math.PI * 2;
+        const distance = 30 + posInPetal * 40;
+        const finalAngle = petalAngle + (posInPetal / Math.ceil(config.letterCount / petals)) * 0.8;
+        x = clamp(width / 2 + Math.cos(finalAngle) * distance * Math.cos(petalAngle), 20, width - 20);
+        y = clamp(height / 2 + Math.sin(finalAngle) * distance * Math.cos(petalAngle), 20, height - 20);
+        rotation = finalAngle * 180 / Math.PI;
+      } else if (config.layoutMode === 'gear') {
+        // Gear - Zahnrad-Muster
+        const teeth = Math.max(4, Math.ceil(Math.sqrt(config.letterCount)));
+        const toothIndex = Math.floor(index / (config.letterCount / teeth));
+        const posInTooth = index % Math.ceil(config.letterCount / teeth);
+        const angle = (toothIndex / teeth) * Math.PI * 2;
+        const distance = 50 + posInTooth * 35;
+        x = clamp(width / 2 + Math.cos(angle) * distance, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * distance, 20, height - 20);
+        rotation = angle * 180 / Math.PI + toothIndex * 45;
+      } else if (config.layoutMode === 'chain') {
+        // Chain - Ketten-Effekt
+        let chainX = 50;
+        let chainY = height / 2;
+        const linksPerChain = Math.ceil(config.letterCount / 3);
+        const chainIndex = Math.floor(index / linksPerChain);
+        x = clamp(chainX + (index % linksPerChain) * (width - 100) / linksPerChain, 20, width - 20);
+        y = clamp(chainY + chainIndex * 40 - 40, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 30;
+      } else if (config.layoutMode === 'tsunami') {
+        // Tsunami - Wellen-Muster
+        const wavelength = width / 3;
+        const amplitude = height * 0.25;
+        x = clamp(20 + (index / config.letterCount) * (width - 40), 20, width - 20);
+        const wavePhase = (index / config.letterCount) * Math.PI * 4;
+        y = clamp(height / 2 + Math.sin(wavePhase) * amplitude + Math.sin(wavePhase * 0.5) * amplitude * 0.5, 20, height - 20);
+        rotation = Math.sin(wavePhase) * 40;
+      } else if (config.layoutMode === 'lightning') {
+        // Lightning - Blitz-Struktur
+        let lx = width / 2;
+        let ly = 30;
+        for (let i = 0; i < index; i++) {
+          const angle = (Math.sin(i * 0.5 + variation) * 0.5 + 0.5) * Math.PI * 2;
+          lx += Math.cos(angle) * 20;
+          ly += Math.sin(angle) * 25 + 15;
+        }
+        x = clamp(lx, 20, width - 20);
+        y = clamp(ly, 20, height - 20);
+        rotation = (Math.random() - 0.5) * 45;
+      } else if (config.layoutMode === 'web') {
+        // Web - Spinnennetz
+        const rings = Math.max(2, Math.ceil(Math.sqrt(config.letterCount / 4)));
+        const ringIndex = Math.floor(index * rings / config.letterCount);
+        const lettersInRing = Math.ceil(config.letterCount / rings);
+        const posInRing = index % lettersInRing;
+        const angle = (posInRing / lettersInRing) * Math.PI * 2;
+        const radius = 40 + ringIndex * 50;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI;
+      } else if (config.layoutMode === 'dna') {
+        // DNA - DNA-Helix
+        const turns = 3;
+        const progress = index / config.letterCount;
+        const angle = progress * Math.PI * 2 * turns;
+        const radius = 60 + Math.sin(angle) * 40;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(30 + progress * (height - 60), 20, height - 20);
+        rotation = angle * 180 / Math.PI;
+      } else if (config.layoutMode === 'rings') {
+        // Rings - Konzentrische Ringe
+        const ringCount = Math.max(2, Math.ceil(Math.sqrt(config.letterCount / 6)));
+        const ringIndex = Math.floor(index / Math.ceil(config.letterCount / ringCount));
+        const posInRing = index % Math.ceil(config.letterCount / ringCount);
+        const angle = (posInRing / Math.ceil(config.letterCount / ringCount)) * Math.PI * 2;
+        const radius = 50 + ringIndex * 60;
+        x = clamp(width / 2 + Math.cos(angle) * radius, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(angle) * radius, 20, height - 20);
+        rotation = angle * 180 / Math.PI + (Math.random() - 0.5) * 15;
+      } else if (config.layoutMode === 'lissajous') {
+        const t = (index / Math.max(1, config.letterCount)) * Math.PI * 2;
+        const a = 3 + (config.letterCount % 4);
+        const b = 4 + Math.floor(config.letterCount % 5);
+        const delta = Math.PI / 4;
+        x = clamp(width / 2 + Math.sin(a * t + delta) * width * 0.4, 20, width - 20);
+        y = clamp(height / 2 + Math.sin(b * t) * height * 0.4, 20, height - 20);
+        rotation = (Math.atan2(y - height / 2, x - width / 2) * 180 / Math.PI) + (Math.random() - 0.5) * 20;
+      } else if (config.layoutMode === 'chaos2') {
+        // Chaos 2 - Extreme Zufälligkeit
+        let attempts = 0;
+        const maxAttempts = 50;
+        do {
+          x = Math.random() * width;
+          y = Math.random() * height;
+          attempts++;
+        } while (!isFarEnough(x, y, positions, minDistance * 0.3) && attempts < maxAttempts);
+        rotation = Math.random() * 360;
+        el.style.zIndex = String(Math.floor(Math.random() * 100));
+      } else {
+        // Chaotisch: wir versuchen Mindestabstände einzuhalten
+        let attempts = 0;
+        const maxAttempts = 25;
+        do {
+          x = Math.random() * (width - 40) + 20;
+          y = Math.random() * (height - 40) + 20;
+          attempts++;
+        } while (!isFarEnough(x, y, positions, minDistance) && attempts < maxAttempts);
+        rotation = (Math.random() * 2 - 1) * config.maxRotation;
+        // assign random z-index for more depth in chaotic layout
+        el.style.zIndex = String(20 + Math.floor(Math.random() * 20));
+      }
+
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      el.style.transform = `translate(-50%, -50%) rotate(${rotation.toFixed(2)}deg)`;
+      positions.push({ x, y });
+      // return position data for canvas rendering
+      return { x, y, rotation };
+    }
+
+    // Generiert Layer mit zufällig platzierten Hintergrund-Bildern
+    function createBackgroundImageLayer(bounds, config, options = {}) {
+      if (!backgroundImages.length) return null;
+
+      const {
+        count = config.bgImageCount || 0,
+        className = 'background-images-layer',
+        layerZIndex,
+        zBase = 10,
+        zRange = 10,
+        pointerEvents = 'none',
+        minDistance = 150
+      } = options;
+
+      let imageCount = Math.max(0, Number(count) || 0);
+      
+      // Wenn bgFullscreen aktiv ist, verwende nur 1 Bild pro Layer, das den ganzen Bereich füllt
+      const isFullscreen = config.bgFullscreen === true;
+      if (isFullscreen) {
+        imageCount = Math.max(1, imageCount); // Mindestens 1 Bild für Fullscreen
+      }
+
+      if (!imageCount) return null;
+
+      const layer = document.createElement('div');
+      layer.className = className;
+      if (typeof layerZIndex === 'number') {
+        layer.style.zIndex = String(layerZIndex);
+      }
+      if (pointerEvents) {
+        layer.style.pointerEvents = pointerEvents;
+      }
+
+      const positions = [];
+      const fillMode = 'cover';
+      const opacity = typeof config.bgImageOpacity === 'number' ? config.bgImageOpacity : 0.9;
+
+      for (let i = 0; i < imageCount; i++) {
+        const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
+        const img = document.createElement('img');
+        img.src = randomImage;
+        img.alt = `Background ${i}`;
+
+        let drawX, drawY, size, centerX, centerY, rotation;
+
+        if (isFullscreen) {
+          // Fullscreen-Modus: Bild füllt den ganzen Bereich
+          drawX = 0;
+          drawY = 0;
+          size = Math.max(bounds.width, bounds.height);
+          centerX = bounds.width / 2;
+          centerY = bounds.height / 2;
+          rotation = 0;
+          img.style.width = `${bounds.width}px`;
+          img.style.height = `${bounds.height}px`;
+          img.style.left = '0px';
+          img.style.top = '0px';
+          img.style.objectFit = 'cover'; // Immer cover für Fullscreen
+        } else {
+          // Normaler Modus: verteilte Platzierung
+          const baseSize = 70 + Math.random() * 90;
+          size = Math.max(20, Math.round(baseSize * (config.bgImageScale || 1)));
+          const halfSize = size / 2;
+
+          const minCenterX = halfSize;
+          const maxCenterX = Math.max(halfSize, bounds.width - halfSize);
+          const minCenterY = halfSize;
+          const maxCenterY = Math.max(halfSize, bounds.height - halfSize);
+
+          const anchors = [
+            { x: minCenterX, y: minCenterY }, // top-left
+            { x: maxCenterX, y: minCenterY }, // top-right
+            { x: minCenterX, y: maxCenterY }, // bottom-left
+            { x: maxCenterX, y: maxCenterY }, // bottom-right
+            { x: bounds.width / 2, y: bounds.height / 2 } // center
+          ];
+
+          centerX = bounds.width / 2;
+          centerY = bounds.height / 2;
+          let attempts = 0;
+          do {
+            let targetX;
+            let targetY;
+            if (i < anchors.length) {
+              const anchor = anchors[i];
+              const jitterX = (Math.random() - 0.5) * Math.max(halfSize, bounds.width * 0.2);
+              const jitterY = (Math.random() - 0.5) * Math.max(halfSize, bounds.height * 0.2);
+              targetX = anchor.x + jitterX;
+              targetY = anchor.y + jitterY;
+            } else {
+              targetX = Math.random() * bounds.width;
+              targetY = Math.random() * bounds.height;
+            }
+            centerX = clamp(targetX, minCenterX, maxCenterX);
+            centerY = clamp(targetY, minCenterY, maxCenterY);
+            attempts++;
+          } while (!isFarEnough(centerX, centerY, positions, minDistance) && attempts < 30);
+
+          drawX = clamp(centerX - halfSize, 0, Math.max(0, bounds.width - size));
+          drawY = clamp(centerY - halfSize, 0, Math.max(0, bounds.height - size));
+          img.style.width = `${size}px`;
+          img.style.height = `${size}px`;
+          img.style.left = `${drawX}px`;
+          img.style.top = `${drawY}px`;
+          img.style.objectFit = 'cover';
+          rotation = Math.random() * 360;
+        }
+
+        img.style.transform = `rotate(${rotation}deg)`;
+        img.style.opacity = String(opacity);
+        img.style.filter = 'none';
+
+        const needsProcessing = (config.bgEffectEnabled && config.bgEffectMode && config.bgEffectMode !== 'none' && config.bgEffectIntensity > 0)
+          || (config.bgTintColor && config.bgTintStrength > 0);
+        if (needsProcessing) {
+          const handleProcess = () => {
+            img.removeEventListener('load', handleProcess);
+            const modifiedImg = prepareBackgroundImage(img, config);
+            if (modifiedImg && modifiedImg.src && modifiedImg.src !== img.src) {
+              img.src = modifiedImg.src;
+            }
+          };
+          img.addEventListener('load', handleProcess);
+          if (img.complete) {
+            handleProcess();
+          }
+        }
+
+        layer.appendChild(img);
+        positions.push({ x: centerX, y: centerY });
+
+        // register render item for canvas export
+        const z = zBase + Math.floor(Math.random() * Math.max(1, zRange));
+        renderItems.push({
+          type: 'bg',
+          src: randomImage,
+          x: drawX,
+          y: drawY,
+          width: size,
+          height: size,
+          rotation: rotation,
+          opacity: opacity,
+          fillMode,
+          z,
+          effectMode: config.bgEffectEnabled ? config.bgEffectMode : 'none',
+          effectIntensity: config.bgEffectIntensity,
+          tintColor: config.bgTintColor,
+          tintStrength: config.bgTintStrength
+        });
+      }
+
+      return layer;
+    }
+
+    // Mindestabstand steuert die Überlagerungsdichte
+    function computeMinDistance(overlapDensity) {
+      const maxSpacing = 160;
+      const minSpacing = 8;
+      return minSpacing + (100 - overlapDensity) / 100 * (maxSpacing - minSpacing);
+    }
+
+    function isFarEnough(x, y, positions, minDist) {
+      for (const p of positions) {
+        const dx = p.x - x;
+        const dy = p.y - y;
+        if (Math.sqrt(dx * dx + dy * dy) < minDist) return false;
+      }
+      return true;
+    }
+
+    function getLayoutOptions() {
+      const select = document.getElementById('layoutMode');
+      if (!select) return [];
+      return Array.from(select.options).map(opt => ({ value: opt.value, label: opt.textContent || opt.value }));
+    }
+
+    function pickRandomLayoutMode() {
+      const layouts = getLayoutOptions().filter(opt => opt.value !== 'randomAuto');
+      if (!layouts.length) return null;
+      return layouts[Math.floor(Math.random() * layouts.length)];
+    }
+
+    function findLayoutLabel(value) {
+      const entry = getLayoutOptions().find(opt => opt.value === value);
+      return entry ? entry.label : value;
+    }
+
+    function getP5EffectOptions() {
+      const select = document.getElementById('p5EffectMode');
+      if (!select) return [];
+      return Array.from(select.options).map(opt => ({ value: opt.value, label: opt.textContent || opt.value }));
+    }
+
+    function pickRandomP5EffectMode() {
+      const list = getP5EffectOptions().filter(opt => opt.value !== 'randomAuto');
+      if (!list.length) return null;
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function resolveP5EffectMode(value) {
+      if (value === 'randomAuto') {
+        const entry = pickRandomP5EffectMode();
+        return entry ? entry.value : 'distortion';
+      }
+      return value || 'distortion';
+    }
+
+    function getBgEffectOptions() {
+      const select = document.getElementById('bgEffectMode');
+      if (!select) return [];
+      return Array.from(select.options).map(opt => ({ value: opt.value, label: opt.textContent || opt.value }));
+    }
+
+    function pickRandomBgEffectMode() {
+      const list = getBgEffectOptions().filter(opt => opt.value !== 'randomAuto' && opt.value !== 'none');
+      if (!list.length) return null;
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    // Ermittelt den Pool an Buchstaben entsprechend der Einstellung
+    function buildLetterPool(config) {
+      const availableLetters = Object.keys(letterImages);
+      if (!availableLetters.length) return { pool: [], missing: [] };
+      if (config.restrictToWord) {
+        const uniqueLetters = [...new Set(config.word.split(''))];
+        const missing = uniqueLetters.filter(l => !letterImages[l]);
+        const pool = uniqueLetters.filter(l => letterImages[l]);
+        return { pool, missing };
+      }
+      // Gewichtung nach Häufigkeit des eingegebenen Wortes
+      const freq = {};
+      for (const ch of config.word) {
+        freq[ch] = (freq[ch] || 0) + 1;
+      }
+      const pool = availableLetters.map(l => ({ letter: l, weight: freq[l] ? freq[l] + 1 : 1 }));
+      return { pool, missing: [] };
+    }
+
+    function pickLetter(pool, restrictToWord) {
+      if (restrictToWord) {
+        if (!pool.length) return null;
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+      if (!pool.length) return null;
+      const total = pool.reduce((sum, item) => sum + item.weight, 0);
+      let r = Math.random() * total;
+      for (const item of pool) {
+        if (r < item.weight) return item.letter;
+        r -= item.weight;
+      }
+      return pool[pool.length - 1].letter;
+    }
+
+    // Hauptfunktion: Poster generieren
+    // Wir generieren immer eine chaotische Collage; die Einstellungen steuern Layout und Farben.
+    function generatePoster() {
+      clearMessages();
+      const config = getCurrentSettings();
+      let randomLayoutLabel = null;
+      if (config.layoutMode === 'randomAuto') {
+        const randomEntry = pickRandomLayoutMode();
+        if (randomEntry) {
+          config.layoutMode = randomEntry.value;
+          randomLayoutLabel = randomEntry.label;
+        }
+      }
+      let randomP5Label = null;
+      if (config.p5EffectMode === 'randomAuto') {
+        const randomEntry = pickRandomP5EffectMode();
+        if (randomEntry) {
+          config.p5EffectMode = randomEntry.value;
+          randomP5Label = randomEntry.label;
+        }
+      }
+      let randomBgLabel = null;
+      if (config.bgEffectEnabled && config.bgEffectMode === 'randomAuto') {
+        const randomEntry = pickRandomBgEffectMode();
+        if (randomEntry) {
+          config.bgEffectMode = randomEntry.value;
+          randomBgLabel = randomEntry.label;
+        }
+      }
+      if (!Object.keys(letterImages).length) {
+        addMessage('Bitte zuerst einen Ordner mit Buchstaben-PNGs laden.', 'error');
+        return;
+      }
+
+      const posterArea = document.getElementById('posterArea');
+      posterArea.innerHTML = '';
+      posterArea.classList.remove('loading');
+      renderItems.length = 0;
+      posterArea.style.backgroundColor = config.backgroundColor;
+      currentBackgroundColor = config.backgroundColor;
+
+      // Leere Tint-Cache damit Effekte neu generiert werden
+      for (const letter in letterImages) {
+        if (letterImages[letter]) {
+          letterImages[letter].forEach(entry => {
+            entry.tintCache = {};
+          });
+        }
+      }
+
+      if (randomLayoutLabel) {
+        addMessage(`Zufalls-Layout: ${randomLayoutLabel}`, 'info');
+      }
+      if (randomP5Label) {
+        addMessage(`Zufalls-P5 Effekt: ${randomP5Label}`, 'info');
+      }
+      if (randomBgLabel) {
+        addMessage(`Zufalls-Hintergrund Effekt: ${randomBgLabel}`, 'info');
+      }
+
+      generateChaosCollage(posterArea, config);
+    }
+
+    
+
+    // Generiert eine chaotische Collage mit optionalen Hintergrundbildern
+    function generateChaosCollage(posterArea, config) {
+      posterArea.classList.add('loading');
+      const bounds = { width: posterArea.clientWidth, height: posterArea.clientHeight };
+      const { pool, missing } = buildLetterPool(config);
+
+      if (missing.length) {
+        addMessage(`Keine Bilder für: ${missing.join(', ')}`, 'error');
+      }
+      if (!pool.length) {
+        addMessage('Kein gültiger Buchstaben-Pool vorhanden.', 'error');
+        posterArea.classList.remove('loading');
+        return;
+      }
+
+      if (config.layoutMode === 'letterShape') {
+        config._letterLayoutPoints = sampleLetterShapePositions(config.letterLayoutChar, config.letterCount);
+      } else {
+        config._letterLayoutPoints = null;
+      }
+
+      // Optional: Hintergrund-Bilder hinzufügen (falls vorhanden)
+      const backgroundLayer = createBackgroundImageLayer(bounds, config, {
+        count: config.bgImageCount,
+        className: 'background-images-layer background-images-layer--back',
+        layerZIndex: 10,
+        zBase: 5,
+        zRange: 10,
+        minDistance: 140
+      });
+      if (backgroundLayer) {
+        posterArea.appendChild(backgroundLayer);
+      }
+
+      // 1) Erzeuge ein Array von Buchstaben, das die Collage füllen wird
+      const letters = [];
+      const wordSequence = (config.word || '').split('');
+      let requiredIndex = 0;
+      while (letters.length < config.letterCount && requiredIndex < wordSequence.length) {
+        letters.push(wordSequence[requiredIndex]);
+        requiredIndex++;
+      }
+      for (let i = letters.length; i < config.letterCount; i++) {
+        const letter = pickLetter(pool, config.restrictToWord);
+        letters.push(letter);
+      }
+
+      // Platziere alle Buchstaben zufällig bzw. je nach Layout
+      const positions = [];
+      const baseSize = 90;
+      for (let i = 0; i < letters.length; i++) {
+        const letter = letters[i];
+        if (!letter || !letterImages[letter] || !letterImages[letter].length) continue;
+        const letterInfo = createLetterElement(letter, config, baseSize);
+        if (!letterInfo) continue;
+        const el = letterInfo.element;
+        // place and retrieve position data
+        const pos = placeLetterElement(el, i, config, bounds, positions);
+        const letterZ = 30 + Math.floor(Math.random() * 20);
+        el.style.zIndex = String(letterZ);
+        posterArea.appendChild(el);
+
+        // register for canvas export: note that el.style.width includes px
+        const width = letterInfo.width || baseSize;
+        const height = letterInfo.height || width;
+        renderItems.push({
+          type: 'letter',
+          src: letterInfo.src || el.src,
+          x: pos.x,
+          y: pos.y,
+          width: width,
+          height: height,
+          rotation: pos.rotation,
+          z: letterZ
+        });
+      }
+
+      const foregroundLayer = createBackgroundImageLayer(bounds, config, {
+        count: config.bgForegroundCount,
+        className: 'background-images-layer background-images-layer--front',
+        layerZIndex: 95,
+        zBase: 90,
+        zRange: 15,
+        minDistance: 100
+      });
+      if (foregroundLayer) {
+        posterArea.appendChild(foregroundLayer);
+      }
+
+      posterArea.classList.remove('loading');
+
+      if (!posterArea.children.length) {
+        addMessage('Es konnten keine Buchstaben platziert werden.', 'error');
+      }
+    }
+
+    // Export-Funktion: rendert `renderItems` auf ein Canvas und lädt PNG herunter
+    async function exportPoster() {
+      const posterArea = document.getElementById('posterArea');
+      if (!posterArea.children.length || !renderItems.length) {
+        addMessage('Nichts zu exportieren – bitte zuerst generieren.', 'error');
+        return;
+      }
+      addMessage('Export läuft...', 'info');
+
+      // sort renderItems by z (ascending) to mimic stacking order
+      const items = [...renderItems].sort((a, b) => (a.z || 0) - (b.z || 0));
+      const bounds = computeCanvasBounds(items, 40);
+      const width = bounds.width;
+      const height = bounds.height;
+      const QUALITY_BOOST = 2;
+      const DPR = (window.devicePixelRatio || 1) * QUALITY_BOOST;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(width * DPR);
+      canvas.height = Math.round(height * DPR);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(DPR, DPR);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      const bgColor = currentBackgroundColor && typeof currentBackgroundColor === 'string' && currentBackgroundColor.trim()
+        ? currentBackgroundColor
+        : '#ffffff';
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, width, height);
+      const offsetX = -bounds.minX;
+      const offsetY = -bounds.minY;
+
+      // helper to load an image with CORS handling
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          // attempt to allow cross-origin images (requires proper CORS headers)
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = (e) => {
+            // Fallback: Erstelle ein einfaches Placeholder-Image wenn CORS fehlt
+            console.warn('Image load failed (CORS?), using fallback:', src);
+            const fallbackCanvas = document.createElement('canvas');
+            fallbackCanvas.width = 100;
+            fallbackCanvas.height = 100;
+            const fallbackCtx = fallbackCanvas.getContext('2d');
+            fallbackCtx.fillStyle = '#cccccc';
+            fallbackCtx.fillRect(0, 0, 100, 100);
+            const fallbackImg = new Image();
+            fallbackImg.src = fallbackCanvas.toDataURL();
+            fallbackImg.onload = () => resolve(fallbackImg);
+            fallbackImg.onerror = () => reject(new Error('Image load failed: ' + src));
+          };
+          img.src = src;
+        });
+      }
+
+      // Sortiere Items: Hintergrund-Bilder ZUERST, dann Fonts
+      // Das stellt sicher, dass Fonts über Hintergrund liegen
+      const sortedItems = items.sort((a, b) => {
+        // Fullscreen-Hintergrund hat z=0, wird zuerst gerendert
+        // Normale BG-Items haben z=10-20, werden früher als Letters gerendert
+        // Letters haben z=100+, werden zuletzt gerendert
+        if (a.type === 'bg' && b.type === 'letter') return -1; // a vor b
+        if (a.type === 'letter' && b.type === 'bg') return 1;   // b vor a
+        // Innerhalb gleicher Typen: nach z-Index sortieren
+        return (a.z || 0) - (b.z || 0);
+      });
+
+      try {
+        for (const it of sortedItems) {
+          let img = await loadImage(it.src);
+
+          // Wende Effekt auf Hintergrund-Bilder an (synchron mit Cache)
+          if (it.type === 'bg' && it.effectMode && it.effectMode !== 'none' && it.effectIntensity > 0) {
+            img = applyEffectToBackgroundImage(img, it.effectMode, it.effectIntensity);
+          }
+          if (it.type === 'bg' && it.tintColor && it.tintStrength > 0) {
+            img = applyTintToBackgroundImage(img, it.tintColor, it.tintStrength);
+          }
+
+          ctx.save();
+
+          // apply opacity if provided
+          ctx.globalAlpha = typeof it.opacity === 'number' ? it.opacity : 1;
+
+          // compute drawing position; background images stored with top-left x,y
+          if (it.type === 'bg') {
+            const x = it.x + offsetX;
+            const y = it.y + offsetY;
+            const w = it.width;
+            const h = it.height;
+            const fillMode = it.fillMode || 'cover';
+            const naturalW = img.naturalWidth || img.width || w;
+            const naturalH = img.naturalHeight || img.height || h;
+            let drawW = w;
+            let drawH = h;
+            if (naturalW && naturalH) {
+              const scaleContain = Math.min(w / naturalW, h / naturalH);
+              const scaleCover = Math.max(w / naturalW, h / naturalH);
+              if (fillMode === 'contain') {
+                const scale = scaleContain || 1;
+                drawW = naturalW * scale;
+                drawH = naturalH * scale;
+              } else if (fillMode === 'cover') {
+                const scale = scaleCover || 1;
+                drawW = naturalW * scale;
+                drawH = naturalH * scale;
+              } else {
+                drawW = w;
+                drawH = h;
+              }
+            }
+            const translateX = x + w / 2;
+            const translateY = y + h / 2;
+            ctx.translate(translateX, translateY);
+            if (it.rotation) ctx.rotate((it.rotation * Math.PI) / 180);
+            ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+          } else if (it.type === 'letter') {
+            // letters are positioned by center coordinates
+            const cx = it.x + offsetX;
+            const cy = it.y + offsetY;
+            const w = it.width;
+            const h = it.height;
+
+            ctx.translate(cx, cy);
+            if (it.rotation) ctx.rotate((it.rotation * Math.PI) / 180);
+            ctx.drawImage(img, -w / 2, -h / 2, w, h);
+            // reset transform
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+          }
+
+          ctx.restore();
+        }
+
+        // finalize and download - Canvas direkt speichern
+        const dataUrl = canvas.toDataURL('image/png');
+        if (!dataUrl || dataUrl.length === 0) {
+          throw new Error('Canvas conversion failed - possible memory issue');
+        }
+        
+        const link = document.createElement('a');
+        const filename = `p${exportFileCounter}.png`;
+        exportFileCounter += 1;
+        link.download = filename;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        addMessage('Poster erfolgreich exportiert!', 'info');
+      } catch (err) {
+        console.error('Export error:', err);
+        addMessage('Export fehlgeschlagen: ' + (err.message || 'Unbekannter Fehler. Versuche die Seite zu aktualisieren.'), 'error');
+      }
+    }
+
+    // UI-Initialisierung
+    document.addEventListener('DOMContentLoaded', () => {
+      const controls = [
+        ['letterCount', 'letterCountValue', v => `${v}`],
+        ['scale', 'scaleValue', v => `${v}%`],
+        ['maxRotation', 'rotationValue', v => `${v}°`],
+        ['overlapDensity', 'densityValue', v => `${v}%`],
+        ['bgImageCount', 'bgCountValue', v => `${v}`],
+        ['bgForegroundCount', 'bgFrontValue', v => `${v}`],
+        ['bgImageOpacity', 'bgOpacityValue', v => `${v}%`],
+        ['bgImageScale', 'bgScaleValue', v => `${v}%`],
+        ['bgTintStrength', 'bgTintStrengthValue', v => `${v}%`],
+        ['p5Intensity', 'p5IntensityValue', v => `${v}%`],
+        ['bgEffectIntensity', 'bgEffectIntensityValue', v => `${v}%`]
+      ];
+      controls.forEach(([inputId, spanId, fmt]) => {
+        const input = document.getElementById(inputId);
+        const span = document.getElementById(spanId);
+        if (input && span) {
+          span.textContent = fmt(input.value);
+          input.addEventListener('input', () => { span.textContent = fmt(input.value); });
+        }
+      });
+
+      // Toggle für Hintergrund-Effekte
+      const bgEffectToggle = document.getElementById('bgEffectToggle');
+      const bgEffectMode = document.getElementById('bgEffectMode');
+      const bgEffectIntensity = document.getElementById('bgEffectIntensity');
+      if (bgEffectToggle && bgEffectMode && bgEffectIntensity) {
+        const updateBgEffectState = () => {
+          bgEffectMode.disabled = !bgEffectToggle.checked;
+          bgEffectIntensity.disabled = !bgEffectToggle.checked;
+        };
+        updateBgEffectState();
+        bgEffectToggle.addEventListener('change', updateBgEffectState);
+      }
+
+      const posterArea = document.getElementById('posterArea');
+      const bgColorInput = document.getElementById('posterBgColor');
+      if (bgColorInput) {
+        currentBackgroundColor = bgColorInput.value || currentBackgroundColor;
+        if (posterArea) {
+          posterArea.style.backgroundColor = currentBackgroundColor;
+        }
+        bgColorInput.addEventListener('input', e => {
+          const value = e.target.value || currentBackgroundColor;
+          currentBackgroundColor = value;
+          if (posterArea) {
+            posterArea.style.backgroundColor = currentBackgroundColor;
+          }
+        });
+      } else if (posterArea) {
+        posterArea.style.backgroundColor = currentBackgroundColor;
+      }
+
+      const layoutModeSelect = document.getElementById('layoutMode');
+      const letterLayoutOptions = document.getElementById('letterLayoutOptions');
+      if (layoutModeSelect && letterLayoutOptions) {
+        const updateLetterLayoutVisibility = () => {
+          letterLayoutOptions.style.display = layoutModeSelect.value === 'letterShape' ? 'block' : 'none';
+        };
+        layoutModeSelect.addEventListener('change', updateLetterLayoutVisibility);
+        updateLetterLayoutVisibility();
+      }
+
+      document.getElementById('letterFiles').addEventListener('change', e => handleFileInput(e.target.files));
+      const fontInput = document.getElementById('fontFiles');
+      if (fontInput) {
+        fontInput.addEventListener('change', e => {
+          handleFontInput(e.target.files);
+        });
+      }
+      document.getElementById('backgroundImages').addEventListener('change', e => handleBackgroundImageInput(e.target.files));
+      document.getElementById('generateBtn').addEventListener('click', generatePoster);
+      document.getElementById('shuffleBtn').addEventListener('click', generatePoster);
+      document.getElementById('exportBtn').addEventListener('click', exportPoster);
+    });
+  </script>
+</body>
+</html>
